@@ -31,14 +31,27 @@ class Flowshop(object):
         print(listeTaches)
         return FlowshopCertificat(listeTaches)
 
-    def evalCMAx(self, certificat) :
+    def evalCMAxRetard(self, certificat) :
         '''
-        Renvoie la date de fin de l'execution des taches,
-        soit la date de fin de travail de la dernière machine 
+        Renvoie (Cmax,retard)
+        Cmax : la date de fin de l'execution des taches,
+        soit la date de fin de travail de la dernière machine
+        Retard : le retard de la dernière machine par rapport à la première 
         '''
         travail = [0] * self.m # Tableau témoins du temps de calcul par machine
+
+        for iTravail in certificat.permutation :
+            for iMachine in range(self.m) :
+                if iMachine == 0 : #La machine 0 n'attends personne sauf elle
+                    travail[0] = travail[0] + self.p[iTravail][0]
+                else :
+                    if travail[iMachine - 1] >= travail[iMachine] :
+                        travail[iMachine] = travail[iMachine-1] + self.p[iTravail][iMachine]
+                    else :
+                        travail[iMachine] = travail[iMachine] + self.p[iTravail][iMachine]
         
-        
+        # Le couple (Cmax,retard) 
+        return (travail[-1],travail[-1] - travail[0])
    
 class FlowshopCertificat(object):
     """
