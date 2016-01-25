@@ -11,13 +11,13 @@ class Flowshop(object):
 
     Une tache doit etre terminée pour être lancée sur une autre machine
     """
-    def __init__(self, n, m, p):
+    def __init__(self, n, m, p, d):
         super(Flowshop, self).__init__()
         # Les données d'entrée du problème
         self.n = n # nombre de taches INT
         self.m = m # nombre de machines INT
         self.p = p[:] # p[i][j] temps de traitement du job i sur la machine j LIST OF LIST OF INT
-
+        self.d = d[:] # d[i] date de fin souhaité du job i
 
     def certificatAlea(self) :
         """
@@ -31,12 +31,11 @@ class Flowshop(object):
         print(listeTaches)
         return FlowshopCertificat(listeTaches)
 
-    def evalCMAxRetard(self, certificat) :
+    def evalCMAx(self, certificat) :
         '''
-        Renvoie (Cmax,retard)
+        Renvoie Cmax
         Cmax : la date de fin de l'execution des taches,
-        soit la date de fin de travail de la dernière machine
-        Retard : le retard de la dernière machine par rapport à la première 
+        soit la date de fin de travail de la dernière machine 
         '''
         travail = [0] * self.m # Tableau témoins du temps de calcul par machine
 
@@ -51,8 +50,34 @@ class Flowshop(object):
                         travail[iMachine] = travail[iMachine] + self.p[iTravail][iMachine]
         
         # Le couple (Cmax,retard) 
-        return (travail[-1],travail[-1] - travail[0])
-   
+        return travail[-1]
+
+    def evalSommeRetards(self,certificat) :
+        '''
+        Renvoie la somme des retards
+        '''
+        travail = [0] * self.m # Tableau témoins du temps de calcul par machine
+        retards = 0
+
+        for iTravail in certificat.permutation :
+            for iMachine in range(self.m) :
+                if iMachine == 0 : #La machine 0 n'attends personne sauf elle
+                    travail[0] = travail[0] + self.p[iTravail][0]
+                else :
+                    if travail[iMachine - 1] >= travail[iMachine] :
+                        travail[iMachine] = travail[iMachine-1] + self.p[iTravail][iMachine]
+                    else :
+                        travail[iMachine] = travail[iMachine] + self.p[iTravail][iMachine]
+                    if iMachine == self.m -1 :
+                        if travail[iMachine] > self.d[iTravail] :
+                            retards = retards + travail[iMachine] - self.d[iTravail]
+        return retards
+        
+
+ 
+
+
+
 class FlowshopCertificat(object):
     """
     Dans le Flowshop de permutation on lance les taches dans le 
@@ -83,9 +108,24 @@ class FlowshopCertificat(object):
                 return False
         return True 
 
+def flowshopAlea() :
+    '''
+    entrée : n le nombre de taches
+             m le nombre de machines
+    sortie : fl un problème de Flowshop aleatoire
+    '''
 
 #################################### LES TESTS ####################################
 
-fl = Flowshop(5,2,[[2,3,2,3,2],[3,2,3,2,3]])
+n = 5
+m = 4
+matrix = [[5,4,4,3],
+          [5,4,4,6],
+          [3,2,3,3],
+          [6,4,4,2],
+          [3,4,1,5]]
+d = [0,0,0,0,0] # a faire a la main
+
+fl = Flowshop(n,m,matrix,d)
 
 fl.certificatAlea()
