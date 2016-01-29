@@ -4,6 +4,8 @@ import random
 # les contraintes de gamme, toutes les tâches doivent passer sur toutes les machines, de la machine 1 à la machine m ;
 # les contraintes de ressource, une machine ne peut traiter qu'une tâche à la fois.
 
+############################## PROBLEME ##############################
+
 class Flowshop(object):
     """
     Le probleme du Flowshop
@@ -72,10 +74,15 @@ class Flowshop(object):
                         if travail[iMachine] > self.d[iTravail] :
                             retards = retards + travail[iMachine] - self.d[iTravail]
         return retards
-        
+
+    def optimisationMeilleursVoisins(self,listeCertificats) :
+        pass
+
+    def optimisationPremiersVoisins(self,listeCertificats) :
+        pass
 
  
-
+############################# CERTIFICAT #############################
 
 
 class FlowshopCertificat(object):
@@ -108,12 +115,67 @@ class FlowshopCertificat(object):
                 return False
         return True 
 
-def flowshopAlea() :
+    def voisinsSimple(self) :
+        '''
+        Renvoie la liste des voisins du certificat instancié,
+        avec des permutation côte à côte
+
+        Par exemple : [1,2,3,4] peut donner [2,1,3,4] [1,3,2,4] [4,2,3,1]
+        '''
+        res = []
+        for i in range(len(self.permutation)) :
+            permut = self.permutation[:]
+            if i == len(permut)-1 :
+                echange(permut,i,0)
+            else :
+                echange(permut,i,i+1)
+            res.append(permut)
+        # pour le momment renvoie un liste de liste il faut plus tard l'ensembel des FlowshopCertificat 
+        return res
+
+    def voisinsMelangeTotal(self) :
+        '''
+        Renvoie la liste des voisins du certificat instancié
+        avec toutes les permutation possible si on change un 
+        permutation[i] avec un permutation[j]
+        '''
+        res = [] 
+        for i in range(len(self.permutation)) :
+            for j in range(len(self.permutation)) :
+                permut = self.permutation[:]
+                if i != j :
+                    echange(permut,i,j)
+                    res.append(permut)
+        #pour le momment renvoie un set de liste le top serait de renvoyer l ensemble des FlowshopCertificat
+        return res
+
+
+################################ GLOBAL ################################
+
+def flowshopAlea(n,m,maxRandP,maxRandD) :
     '''
     entrée : n le nombre de taches
              m le nombre de machines
+             maxRand le nombre pour majorer les chiffres random aleatoire
     sortie : fl un problème de Flowshop aleatoire
     '''
+    p = []
+    for i in range(n) :
+        p.append([0]*m)
+    p[0][0] = 2
+    d = [0] * n
+    for i in range(n):
+        for j in range(m):
+            alea = r.randint(1,maxRandP)
+            p[i][j] = alea
+        d[i] = r.randint(1,maxRandD)
+    return Flowshop(n,m,p,d)
+
+def echange(tableau, indice1, indice2) :
+    tmp = tableau[indice1]
+    tableau[indice1] = tableau[indice2]
+    tableau[indice2] = tmp
+
 
 #################################### LES TESTS ####################################
 
@@ -128,4 +190,12 @@ d = [0,0,0,0,0] # a faire a la main
 
 fl = Flowshop(n,m,matrix,d)
 
-fl.certificatAlea()
+# fl.certificatAlea()
+
+# TEST DES FONCTIONS DE VOISINAGE
+
+certificat = FlowshopCertificat([1,2,3,4,5,6,7])
+
+print('''certificat d'origine : ''', certificat.permutation)
+print('''voisinsSimple''',certificat.voisinsSimple())
+print('''voisinsMelangeTotal''',certificat.voisinsMelangeTotal())
