@@ -75,10 +75,23 @@ class Flowshop(object):
                             retards = retards + travail[iMachine] - self.d[iTravail]
         return retards
 
-    def optimisationMeilleursVoisins(self,listeCertificats) :
+    def optimisationCompleteSimple(self,listeCertificats) :
+        '''
+        Entrée : une liste de certificats acceptables
+
+        pour chaque certificats on calcule les voisins,
+        on ajoute tous les meilleurs voisins pour l'iteration suivante
+        si pas de meilleurs on laisse notre certificat actuel 
+        '''
+
+
+    def optimisationCompleteTotale(self,listeCertificats) :
         pass
 
-    def optimisationPremiersVoisins(self,listeCertificats) :
+    def optimisationDirecteSimple(self,listeCertificats) :
+        pass
+
+    def optimisationDirecteTotale(self,listeCertificats) :  
         pass
 
  
@@ -100,6 +113,8 @@ class FlowshopCertificat(object):
     def __init__(self, liste):
         super(FlowshopCertificat, self).__init__()
         self.permutation = liste[:]
+        self.best = False # un nouvel attribut pour l'optimisation
+        #                   vaut True si tous ses voisins sont moins bon
           
     def estCorrecte(self,tailleProbleme) :
         """
