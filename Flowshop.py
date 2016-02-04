@@ -1,5 +1,6 @@
 # Classe flowshop dans le cadre du pji master 2016
 import random
+import FlowshopCertificat
 
 # les contraintes de gamme, toutes les tâches doivent passer sur toutes les machines, de la machine 1 à la machine m ;
 # les contraintes de ressource, une machine ne peut traiter qu'une tâche à la fois.
@@ -83,6 +84,23 @@ class Flowshop(object):
         on ajoute tous les meilleurs voisins pour l'iteration suivante
         si pas de meilleurs on laisse notre certificat actuel 
         '''
+        for certificat in listeCertificats :
+            scoreCMAX = self.evalCMAx(certificat)
+            scoreRETARD = self.evalSommeRetards(certificat)
+            while certificat.hasNext() :
+                nouveauCertif = certificat.next()
+                nouveauCMAX = self.evalCMAx(nouveauCertif)
+                nouveauRETARD = self.evalSommeRetards(nouveauCertif)
+                if scoreCMAX < nouveauCMAX and scoreRETARD < nouveauRETARD :
+                    listeCertificats.remove(certificat)
+                    listeCertificats.append(nouveauCertif)
+                    break
+                elif scoreCMAX < nouveauCMAX or scoreRETARD < nouveauRETARD :
+                    listeCertificats.append(nouveauCertif)
+                    break
+        return listeCertificats
+
+
 
 
     def optimisationCompleteTotale(self,listeCertificats) :
@@ -95,75 +113,6 @@ class Flowshop(object):
         pass
 
  
-############################# CERTIFICAT #############################
-
-
-class FlowshopCertificat(object):
-    """
-    Dans le Flowshop de permutation on lance les taches dans le 
-    même ordre sur toutes les machines donc notre certificat est 
-    la liste ordonnée des taches a executer.
-
-
-    Certificat possible:
-    longueur n
-    ne contient pas de doublon
-
-    """
-    def __init__(self, liste):
-        super(FlowshopCertificat, self).__init__()
-        self.permutation = liste[:]
-        self.best = False # un nouvel attribut pour l'optimisation
-        #                   vaut True si tous ses voisins sont moins bon
-          
-    def estCorrecte(self,tailleProbleme) :
-        """
-        Renvoie True si le certificat est possible 
-        """
-        if len(self.permutation) != tailleProbleme :
-            return False
-        dejaVu = [False] * tailleProbleme
-        for tache in self.permutation :
-            if not dejaVu[tache] :
-                dejaVu[tache] = True
-            else :
-                return False
-        return True 
-
-    def voisinsSimple(self) :
-        '''
-        Renvoie la liste des voisins du certificat instancié,
-        avec des permutation côte à côte
-
-        Par exemple : [1,2,3,4] peut donner [2,1,3,4] [1,3,2,4] [4,2,3,1]
-        '''
-        res = []
-        for i in range(len(self.permutation)) :
-            permut = self.permutation[:]
-            if i == len(permut)-1 :
-                echange(permut,i,0)
-            else :
-                echange(permut,i,i+1)
-            res.append(permut)
-        # pour le momment renvoie un liste de liste il faut plus tard l'ensembel des FlowshopCertificat 
-        return res
-
-    def voisinsMelangeTotal(self) :
-        '''
-        Renvoie la liste des voisins du certificat instancié
-        avec toutes les permutation possible si on change un 
-        permutation[i] avec un permutation[j]
-        '''
-        res = [] 
-        for i in range(len(self.permutation)) :
-            for j in range(len(self.permutation)) :
-                permut = self.permutation[:]
-                if i != j :
-                    echange(permut,i,j)
-                    res.append(permut)
-        #pour le momment renvoie un set de liste le top serait de renvoyer l ensemble des FlowshopCertificat
-        return res
-
 
 ################################ GLOBAL ################################
 
@@ -181,36 +130,9 @@ def flowshopAlea(n,m,maxRandP,maxRandD) :
     d = [0] * n
     for i in range(n):
         for j in range(m):
+            FlowshopCertificat.FlowshopCertificat(permut) 
             alea = r.randint(1,maxRandP)
             p[i][j] = alea
-        d[i] = r.randint(1,maxRandD)
+            d[i] = r.randint(1,maxRandD)
     return Flowshop(n,m,p,d)
 
-def echange(tableau, indice1, indice2) :
-    tmp = tableau[indice1]
-    tableau[indice1] = tableau[indice2]
-    tableau[indice2] = tmp
-
-
-#################################### LES TESTS ####################################
-
-n = 5
-m = 4
-matrix = [[5,4,4,3],
-          [5,4,4,6],
-          [3,2,3,3],
-          [6,4,4,2],
-          [3,4,1,5]]
-d = [0,0,0,0,0] # a faire a la main
-
-fl = Flowshop(n,m,matrix,d)
-
-# fl.certificatAlea()
-
-# TEST DES FONCTIONS DE VOISINAGE
-
-certificat = FlowshopCertificat([1,2,3,4,5,6,7])
-
-print('''certificat d'origine : ''', certificat.permutation)
-print('''voisinsSimple''',certificat.voisinsSimple())
-print('''voisinsMelangeTotal''',certificat.voisinsMelangeTotal())
