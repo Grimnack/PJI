@@ -16,7 +16,7 @@ class FlowshopCertificat(object):
         self.permutation = liste[:]
         self.visited = False
         self.iterator = 0
-        taille = len(liste) 
+        self.taille = len(liste) 
 
     def estCorrecte(self,tailleProbleme) :
         """
@@ -44,6 +44,7 @@ class FlowshopCertificat(object):
             echange(permut,self.iterator,0)
         else :
             echange(permut,self.iterator,self.iterator+1)
+        self.iterator += 1
         return FlowshopCertificat(permut) 
 
 

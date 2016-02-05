@@ -1,10 +1,13 @@
 # Classe flowshop dans le cadre du pji master 2016
 import random
 import FlowshopCertificat
-
+import matplotlib.pyplot as plt
 # les contraintes de gamme, toutes les tâches doivent passer sur toutes les machines, de la machine 1 à la machine m ;
 # les contraintes de ressource, une machine ne peut traiter qu'une tâche à la fois.
 
+plt.autoscale(tight=False)
+plt.xlabel("CMAX")
+plt.ylabel("Retard")
 ############################## PROBLEME ##############################
 
 class Flowshop(object):
@@ -31,8 +34,7 @@ class Flowshop(object):
         for i in range(self.n) :
             listeTaches[i]=i
         random.shuffle(listeTaches)
-        print(listeTaches)
-        return FlowshopCertificat(listeTaches)
+        return FlowshopCertificat.FlowshopCertificat(listeTaches)
 
     def evalCMAx(self, certificat) :
         '''
@@ -76,17 +78,62 @@ class Flowshop(object):
                             retards = retards + travail[iMachine] - self.d[iTravail]
         return retards
 
-    def optimisationCompleteSimple(self,listeCertificats) :
+    def optimisationDirecteSimple(self,listeCertificats,trace=False) :
         '''
+
         Entrée : une liste de certificats acceptables
 
+        option trace pour matplotlib
+
         pour chaque certificats on calcule les voisins,
-        on ajoute tous les meilleurs voisins pour l'iteration suivante
+        on ajoute uniquement le premier meilleur voisin pour l'iteration suivante
         si pas de meilleurs on laisse notre certificat actuel 
         '''
         for certificat in listeCertificats :
             scoreCMAX = self.evalCMAx(certificat)
             scoreRETARD = self.evalSommeRetards(certificat)
+            if trace :
+                plt.plot(scoreCMAX,scoreRETARD,'ro')
+            while certificat.hasNext() :
+                nouveauCertif = certificat.next()
+                nouveauCMAX = self.evalCMAx(nouveauCertif)
+                nouveauRETARD = self.evalSommeRetards(nouveauCertif)
+                aPlacer = False
+                if trace :
+                    plt.plot(nouveauCMAX,nouveauRETARD,'ro')
+                # ici il faut remove tous les moins bon
+                for test in listeCertificats :
+                    testCmax = self.evalCMAx(test)
+                    testRetard = self.evalSommeRetards(test) 
+                    if testCmax >= nouveauCMAX and testRetard >= nouveauRETARD :
+                        listeCertificats.remove(test)
+                        aPlacer = True
+                    elif testCmax > nouveauCMAX or testRetard > nouveauRETARD :
+                        aPlacer = True
+                if aPlacer :
+                    listeCertificats.append(nouveauCertif)
+                    break
+                        
+        if trace :
+            for certificat in listeCertificats :
+                scoreRETARD = self.evalSommeRetards(certificat)
+                scoreCMAX = self.evalCMAx(certificat)
+                plt.plot(scoreCMAX,scoreRETARD,'bo')
+            plt.show()
+        return listeCertificats
+
+
+    # Bon ici le soucis c est de savoir quand et comment retirer
+    # les certificats qui sont moins bon (mon bon score dans les deux evals)
+    def optimisationCompleteSimple(self,listeCertificats) :
+        '''
+        Complete veut dire qu'on prend tous les meilleurs
+        Utilisation de voisin Simple 
+        '''
+        for certificat in listeCertificats :
+            scoreCMAX = self.evalCMAx(certificat)
+            scoreRETARD = self.evalSommeRetards(certificat)
+
             while certificat.hasNext() :
                 nouveauCertif = certificat.next()
                 nouveauCMAX = self.evalCMAx(nouveauCertif)
@@ -94,20 +141,13 @@ class Flowshop(object):
                 if scoreCMAX < nouveauCMAX and scoreRETARD < nouveauRETARD :
                     listeCertificats.remove(certificat)
                     listeCertificats.append(nouveauCertif)
-                    break
                 elif scoreCMAX < nouveauCMAX or scoreRETARD < nouveauRETARD :
                     listeCertificats.append(nouveauCertif)
-                    break
-        return listeCertificats
-
-
-
+        return listeCertificats        
 
     def optimisationCompleteTotale(self,listeCertificats) :
         pass
 
-    def optimisationDirecteSimple(self,listeCertificats) :
-        pass
 
     def optimisationDirecteTotale(self,listeCertificats) :  
         pass
