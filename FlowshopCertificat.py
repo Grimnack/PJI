@@ -18,6 +18,10 @@ class FlowshopCertificat(object):
         self.iterator = 0
         self.taille = len(liste) 
 
+    def __eq__(self,other) :
+        return self.permutation == other.permutation
+
+
     def estCorrecte(self,tailleProbleme) :
         """
         Renvoie True si le certificat est possible 

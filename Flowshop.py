@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 plt.autoscale(tight=False)
 plt.xlabel("CMAX")
 plt.ylabel("Retard")
+plt.axis([0,100,0,100])
 ############################## PROBLEME ##############################
 
 class Flowshop(object):
@@ -36,30 +37,9 @@ class Flowshop(object):
         random.shuffle(listeTaches)
         return FlowshopCertificat.FlowshopCertificat(listeTaches)
 
-    def evalCMAx(self, certificat) :
+    def eval(self,certificat) :
         '''
-        Renvoie Cmax
-        Cmax : la date de fin de l'execution des taches,
-        soit la date de fin de travail de la dernière machine 
-        '''
-        travail = [0] * self.m # Tableau témoins du temps de calcul par machine
-
-        for iTravail in certificat.permutation :
-            for iMachine in range(self.m) :
-                if iMachine == 0 : #La machine 0 n'attends personne sauf elle
-                    travail[0] = travail[0] + self.p[iTravail][0]
-                else :
-                    if travail[iMachine - 1] >= travail[iMachine] :
-                        travail[iMachine] = travail[iMachine-1] + self.p[iTravail][iMachine]
-                    else :
-                        travail[iMachine] = travail[iMachine] + self.p[iTravail][iMachine]
-        
-        # Le couple (Cmax,retard) 
-        return travail[-1]
-
-    def evalSommeRetards(self,certificat) :
-        '''
-        Renvoie la somme des retards
+        Renvoie Cmax,retards
         '''
         travail = [0] * self.m # Tableau témoins du temps de calcul par machine
         retards = 0
@@ -76,7 +56,7 @@ class Flowshop(object):
                     if iMachine == self.m -1 :
                         if travail[iMachine] > self.d[iTravail] :
                             retards = retards + travail[iMachine] - self.d[iTravail]
-        return retards
+        return (travail[-1],retards)
 
     def optimisationDirecteSimple(self,listeCertificats,trace=False) :
         '''
@@ -89,42 +69,51 @@ class Flowshop(object):
         on ajoute uniquement le premier meilleur voisin pour l'iteration suivante
         si pas de meilleurs on laisse notre certificat actuel 
         '''
-        for certificat in listeCertificats :
-            scoreCMAX = self.evalCMAx(certificat)
-            scoreRETARD = self.evalSommeRetards(certificat)
-            if trace :
+        cpt1 = 0
+
+        allVisited = False
+        if trace :
+            for certificat in listeCertificats:
+                (scoreCMAX,scoreRETARD) = self.eval(certificat)
                 plt.plot(scoreCMAX,scoreRETARD,'ro')
+
+        while True:
+            #Prendre un certificat au hasard plutot
+            print("cpt1 == ", cpt1)
+            cpt1 += 1
+            (certificat,allVisited) = randomPick(listeCertificats)
+            if allVisited :
+                print('allVisited')
+                break
+            certificat.visited = True
+            #calcul des voisins
+            cpt2 = 0
             while certificat.hasNext() :
+                print("cpt2 == ",cpt2)
+                cpt2 += 1
                 nouveauCertif = certificat.next()
-                nouveauCMAX = self.evalCMAx(nouveauCertif)
-                nouveauRETARD = self.evalSommeRetards(nouveauCertif)
-                aPlacer = False
+                (nouveauCMAX,nouveauRETARD)= self.eval(nouveauCertif)
                 if trace :
                     plt.plot(nouveauCMAX,nouveauRETARD,'ro')
-                # ici il faut remove tous les moins bon
+                dominated = False
                 for test in listeCertificats :
-                    testCmax = self.evalCMAx(test)
-                    testRetard = self.evalSommeRetards(test) 
-                    if testCmax >= nouveauCMAX and testRetard >= nouveauRETARD :
+                    (testCMAx,testRetard) = self.eval(test)
+                    if testCMAx <= nouveauCMAX and testRetard <= nouveauRETARD :
+                        dominated = True
+                    if testCMAx >= nouveauCMAX and testRetard >= nouveauRETARD :
                         listeCertificats.remove(test)
-                        aPlacer = True
-                    elif testCmax > nouveauCMAX or testRetard > nouveauRETARD :
-                        aPlacer = True
-                if aPlacer :
+                if not dominated :
                     listeCertificats.append(nouveauCertif)
                     break
-                        
         if trace :
-            for certificat in listeCertificats :
-                scoreRETARD = self.evalSommeRetards(certificat)
+            for certificat in listeCertificats:
                 scoreCMAX = self.evalCMAx(certificat)
-                plt.plot(scoreCMAX,scoreRETARD,'bo')
+                scoreRETARD = self.evalSommeRetards(certificat)
+                plt.plot(scoreCMAX,scoreRETARD,'bo') 
             plt.show()
+
         return listeCertificats
 
-
-    # Bon ici le soucis c est de savoir quand et comment retirer
-    # les certificats qui sont moins bon (mon bon score dans les deux evals)
     def optimisationCompleteSimple(self,listeCertificats) :
         '''
         Complete veut dire qu'on prend tous les meilleurs
@@ -156,6 +145,27 @@ class Flowshop(object):
 
 ################################ GLOBAL ################################
 
+def randomPick(listeCertificats) :
+    random.shuffle(listeCertificats)
+    for certificat in listeCertificats :
+        if not certificat.visited :
+            return (certificat,False)
+    return (listeCertificats[0],True)
+
+# def randomPick(listeCertificats) :
+#     taille = len(listeCertificats)
+#     cpt = taille
+#     indice = random.randint(0,taille-1)
+#     while listeCertificats[indice].visited and cpt > 0:
+#         if indice == taille-1 :
+#             indice = 0
+#         else :
+#             indice = indice + 1
+#         cpt -= 1 
+
+#     print("cpt = ", cpt)
+#     return (listeCertificats[indice],cpt == 0)
+
 def flowshopAlea(n,m,maxRandP,maxRandD) :
     '''
     entrée : n le nombre de taches
@@ -171,8 +181,8 @@ def flowshopAlea(n,m,maxRandP,maxRandD) :
     for i in range(n):
         for j in range(m):
             FlowshopCertificat.FlowshopCertificat(permut) 
-            alea = r.randint(1,maxRandP)
+            alea = random.randint(1,maxRandP)
             p[i][j] = alea
-            d[i] = r.randint(1,maxRandD)
+            d[i] = random.randint(1,maxRandD)
     return Flowshop(n,m,p,d)
 

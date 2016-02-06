@@ -35,7 +35,7 @@ def testVoisinsMelangeTotalCouteux():
 def testOptimisationDirecteSimple(trace = False):
     #on choisit des certificats au hasard
     listeCertificat = []
-    for i in range(10) :
+    for i in range(1) :
         listeCertificat.append(fl.certificatAlea())
     fl.optimisationDirecteSimple(listeCertificat, trace)
     for certificat in listeCertificat :
