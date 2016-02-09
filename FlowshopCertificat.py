@@ -43,7 +43,7 @@ class FlowshopCertificat(object):
         '''
         version voisinsSimple avec iterator
         '''
-        permut = self.permutation
+        permut = self.permutation[:]
         if self.iterator == len(permut)-1 :
             echange(permut,self.iterator,0)
         else :

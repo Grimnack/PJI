@@ -69,8 +69,6 @@ class Flowshop(object):
         on ajoute uniquement le premier meilleur voisin pour l'iteration suivante
         si pas de meilleurs on laisse notre certificat actuel 
         '''
-        cpt1 = 0
-
         allVisited = False
         if trace :
             for certificat in listeCertificats:
@@ -79,18 +77,12 @@ class Flowshop(object):
 
         while True:
             #Prendre un certificat au hasard plutot
-            print("cpt1 == ", cpt1)
-            cpt1 += 1
             (certificat,allVisited) = randomPick(listeCertificats)
             if allVisited :
                 print('allVisited')
                 break
             certificat.visited = True
-            #calcul des voisins
-            cpt2 = 0
             while certificat.hasNext() :
-                print("cpt2 == ",cpt2)
-                cpt2 += 1
                 nouveauCertif = certificat.next()
                 (nouveauCMAX,nouveauRETARD)= self.eval(nouveauCertif)
                 if trace :
@@ -98,17 +90,19 @@ class Flowshop(object):
                 dominated = False
                 for test in listeCertificats :
                     (testCMAx,testRetard) = self.eval(test)
-                    if testCMAx <= nouveauCMAX and testRetard <= nouveauRETARD :
+                    if testCMAx <= nouveauCMAX and testRetard < nouveauRETARD or testCMAx < nouveauCMAX and testRetard <= nouveauRETARD :
                         dominated = True
-                    if testCMAx >= nouveauCMAX and testRetard >= nouveauRETARD :
+                    if testCMAx >= nouveauCMAX and testRetard > nouveauRETARD :
                         listeCertificats.remove(test)
-                if not dominated :
+                    elif  testCMAx > nouveauCMAX and testRetard >= nouveauRETARD:
+                        listeCertificats.remove(test)
+                if not dominated and not (nouveauCertif in listeCertificats) :
                     listeCertificats.append(nouveauCertif)
                     break
+
         if trace :
             for certificat in listeCertificats:
-                scoreCMAX = self.evalCMAx(certificat)
-                scoreRETARD = self.evalSommeRetards(certificat)
+                (scoreCMAX,scoreRETARD) = self.eval(certificat)
                 plt.plot(scoreCMAX,scoreRETARD,'bo') 
             plt.show()
 
@@ -152,6 +146,12 @@ def randomPick(listeCertificats) :
             return (certificat,False)
     return (listeCertificats[0],True)
 
+def nbVisited(listeCertificats) :
+    cpt = 0
+    for certificat in listeCertificats :
+        if certificat.visited :
+            cpt+= 1
+    return cpt
 # def randomPick(listeCertificats) :
 #     taille = len(listeCertificats)
 #     cpt = taille
