@@ -105,20 +105,19 @@ class Flowshop(object):
                 break
             voisin.certificat.visited = True
             while voisin.hasNext() :
-                nouveauVoisin = voisin.next()
-                scoreCandidat= self.eval(nouveauVoisin.certificat)
+                candidat = voisin.next()
+                scoreCandidat= self.eval(candidat.certificat)
                 if trace :
                     plt.plot(scoreCandidat[0],scoreCandidat[1],'ro')
                 dominated = False
-                domineF = True
                 for test in listeVoisins :
                     scoreTest = self.eval(test.certificat)
                     if self.domine(scoreCandidat,scoreTest) :
                         listeVoisins.remove(test)
                     elif self.domine(scoreTest,scoreCandidat) :
                         dominated = True
-                if not dominated and not (nouveauVoisin in listeVoisins)  :
-                    listeVoisins.append(nouveauVoisin)
+                if not dominated and not (candidat in listeVoisins)  :
+                    listeVoisins.append(candidat)
                     break
         if trace :
             self.doTrace(listeVoisins,'bo') 

@@ -4,7 +4,7 @@ class VoisinageGauche(object):
     """docstring for VoisinageGauche"""
     def __init__(self, flCertif):
         super(VoisinageGauche, self).__init__()
-        self.iterator = 0
+        self.iterator = -1
         self.certificat = flCertif
 
     def __eq__(self,other):
@@ -14,6 +14,9 @@ class VoisinageGauche(object):
         return self.iterator+1 < self.certificat.taille
 
     def next(self) :
+        if self.iterator == -1 :
+            self.iterator = 0
+            return self
         permut = self.certificat.permutation[:]
         pick = permut[self.iterator]
         for i in range(self.iterator+1,len(permut)) :

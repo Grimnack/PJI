@@ -15,7 +15,6 @@ class FlowshopCertificat(object):
         super(FlowshopCertificat, self).__init__()
         self.permutation = liste[:]
         self.visited = False
-        self.iterator = 0
         self.taille = len(liste) 
 
     def __eq__(self,other) :
