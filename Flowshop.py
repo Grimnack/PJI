@@ -58,7 +58,34 @@ class Flowshop(object):
                             retards = retards + travail[iMachine] - self.d[iTravail]
         return (travail[-1],retards)
 
-    def optimisationDirecteSimple(self,listeCertificats,trace=False) :
+    def doTrace(self,voisinages,chaine) :
+        for voisin in voisinages :
+            (scoreCMAX,scoreRETARD) = self.eval(voisin.certificat)
+            plt.plot(scoreCMAX,scoreRETARD,chaine)
+
+    def domine(self,scores1,scores2) :
+        '''
+        scores1 domine scores2 sisi scores1[i] <= scores2[i] et scores1 != scores2
+        '''
+        toujoursInfouEgal = True
+        SUP = False
+
+        for i in range(len(scores2)) :
+            if not (scores1[i] <= scores2[i]) :
+                toujoursInfouEgal = False
+            if scores1[i] < scores2[i] :
+                SUP = True
+        return toujoursInfouEgal and SUP
+
+    def domineFortement(self,scores1,scores2):
+        domine = True
+        for i in range(len(scores2)) :
+            if not (scores1[i] < scores2[i]) :
+                domine = False
+        return domine
+
+
+    def optimisationDirecteSimple(self,listeVoisins,trace=False) :
         '''
 
         Entrée : une liste de certificats acceptables
@@ -71,80 +98,43 @@ class Flowshop(object):
         '''
         allVisited = False
         if trace :
-            for certificat in listeCertificats:
-                (scoreCMAX,scoreRETARD) = self.eval(certificat)
-                plt.plot(scoreCMAX,scoreRETARD,'ro')
-
+            self.doTrace(listeVoisins,'ro')
         while True:
-            #Prendre un certificat au hasard plutot
-            (certificat,allVisited) = randomPick(listeCertificats)
+            (voisin,allVisited) = randomPick(listeVoisins)
             if allVisited :
-                print('allVisited')
                 break
-            certificat.visited = True
-            while certificat.hasNext() :
-                nouveauCertif = certificat.next()
-                (nouveauCMAX,nouveauRETARD)= self.eval(nouveauCertif)
+            voisin.certificat.visited = True
+            while voisin.hasNext() :
+                nouveauVoisin = voisin.next()
+                scoreCandidat= self.eval(nouveauVoisin.certificat)
                 if trace :
-                    plt.plot(nouveauCMAX,nouveauRETARD,'ro')
+                    plt.plot(scoreCandidat[0],scoreCandidat[1],'ro')
                 dominated = False
-                for test in listeCertificats :
-                    (testCMAx,testRetard) = self.eval(test)
-                    if testCMAx <= nouveauCMAX and testRetard < nouveauRETARD or testCMAx < nouveauCMAX and testRetard <= nouveauRETARD :
+                domineF = True
+                for test in listeVoisins :
+                    scoreTest = self.eval(test.certificat)
+                    if self.domine(scoreCandidat,scoreTest) :
+                        listeVoisins.remove(test)
+                    elif self.domine(scoreTest,scoreCandidat) :
                         dominated = True
-                    if testCMAx >= nouveauCMAX and testRetard > nouveauRETARD :
-                        listeCertificats.remove(test)
-                    elif  testCMAx > nouveauCMAX and testRetard >= nouveauRETARD:
-                        listeCertificats.remove(test)
-                if not dominated and not (nouveauCertif in listeCertificats) :
-                    listeCertificats.append(nouveauCertif)
+                if not dominated and not (nouveauVoisin in listeVoisins)  :
+                    listeVoisins.append(nouveauVoisin)
                     break
-
         if trace :
-            for certificat in listeCertificats:
-                (scoreCMAX,scoreRETARD) = self.eval(certificat)
-                plt.plot(scoreCMAX,scoreRETARD,'bo') 
+            self.doTrace(listeVoisins,'bo') 
             plt.show()
 
-        return listeCertificats
-
-    def optimisationCompleteSimple(self,listeCertificats) :
-        '''
-        Complete veut dire qu'on prend tous les meilleurs
-        Utilisation de voisin Simple 
-        '''
-        for certificat in listeCertificats :
-            scoreCMAX = self.evalCMAx(certificat)
-            scoreRETARD = self.evalSommeRetards(certificat)
-
-            while certificat.hasNext() :
-                nouveauCertif = certificat.next()
-                nouveauCMAX = self.evalCMAx(nouveauCertif)
-                nouveauRETARD = self.evalSommeRetards(nouveauCertif)
-                if scoreCMAX < nouveauCMAX and scoreRETARD < nouveauRETARD :
-                    listeCertificats.remove(certificat)
-                    listeCertificats.append(nouveauCertif)
-                elif scoreCMAX < nouveauCMAX or scoreRETARD < nouveauRETARD :
-                    listeCertificats.append(nouveauCertif)
-        return listeCertificats        
-
-    def optimisationCompleteTotale(self,listeCertificats) :
-        pass
-
-
-    def optimisationDirecteTotale(self,listeCertificats) :  
-        pass
-
+        return listeVoisins
  
 
 ################################ GLOBAL ################################
 
-def randomPick(listeCertificats) :
-    random.shuffle(listeCertificats)
-    for certificat in listeCertificats :
-        if not certificat.visited :
-            return (certificat,False)
-    return (listeCertificats[0],True)
+def randomPick(listeVoisinages) :
+    random.shuffle(listeVoisinages)
+    for voisin in listeVoisinages :
+        if not voisin.certificat.visited :
+            return (voisin,False)
+    return (listeVoisinages[0],True)
 
 def nbVisited(listeCertificats) :
     cpt = 0
@@ -152,19 +142,7 @@ def nbVisited(listeCertificats) :
         if certificat.visited :
             cpt+= 1
     return cpt
-# def randomPick(listeCertificats) :
-#     taille = len(listeCertificats)
-#     cpt = taille
-#     indice = random.randint(0,taille-1)
-#     while listeCertificats[indice].visited and cpt > 0:
-#         if indice == taille-1 :
-#             indice = 0
-#         else :
-#             indice = indice + 1
-#         cpt -= 1 
 
-#     print("cpt = ", cpt)
-#     return (listeCertificats[indice],cpt == 0)
 
 def flowshopAlea(n,m,maxRandP,maxRandD) :
     '''
