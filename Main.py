@@ -45,6 +45,6 @@ def testOptimisationDirecteGauche(trace = False) :
     for voisin in voisinageGauche :
         print(voisin.certificat.permutation)
 
-# testOptimisationDirecteSimple(trace = True)
-testOptimisationDirecteGauche(trace = True)
+testOptimisationDirecteSimple(trace = True)
+# testOptimisationDirecteGauche(trace = True)
 # testDomine()

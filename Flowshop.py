@@ -41,6 +41,8 @@ class Flowshop(object):
         '''
         Renvoie Cmax,retards
         '''
+        if certificat.score != None :
+            return certificat.score
         travail = [0] * self.m # Tableau témoins du temps de calcul par machine
         retards = 0
 
@@ -56,6 +58,7 @@ class Flowshop(object):
                     if iMachine == self.m -1 :
                         if travail[iMachine] > self.d[iTravail] :
                             retards = retards + travail[iMachine] - self.d[iTravail]
+        certificat.score = (travail[-1],retards) 
         return (travail[-1],retards)
 
     def doTrace(self,voisinages,chaine) :
@@ -84,8 +87,33 @@ class Flowshop(object):
                 domine = False
         return domine
 
+    def cleanse(self, listeVoisins) :
+        '''
+        Supprime les éléments moins bons que d'autres dans la liste
+        entrée liste L
+        sortie liste L' plus petite ou égale
+        '''
+        #calcul du score pour tous le monde une seule fois
+        for voisin in listeVoisins :
+            self.eval(voisin.certificat)
 
-    def optimisationDirecteSimple(self,listeVoisins,trace=False) :
+        nouvelle = []
+        while listeVoisins : #tant que la liste n est pas vide
+            test = listeVoisins.pop(0)
+            dominated = False
+            for voisin in listeVoisins :
+                score1 = self.eval(voisin.certificat)
+                scoreTest = self.eval(test.certificat)
+                if self.domine(score1,scoreTest) :
+                    dominated = True
+                if self.domine(scoreTest,score1) :
+                    listeVoisins.remove(voisin)
+            if not dominated :
+                nouvelle.append(test)
+        return nouvelle
+
+
+    def optimisationDirecteSimple(self,listeInit,trace=False) :
         '''
 
         Entrée : une liste de certificats acceptables
@@ -96,6 +124,7 @@ class Flowshop(object):
         on ajoute uniquement le premier meilleur voisin pour l'iteration suivante
         si pas de meilleurs on laisse notre certificat actuel 
         '''
+        listeVoisins = self.cleanse(listeInit)
         allVisited = False
         if trace :
             self.doTrace(listeVoisins,'ro')
