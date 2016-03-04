@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 plt.autoscale(tight=False)
 plt.xlabel("CMAX")
 plt.ylabel("Retard")
-plt.axis([0,100,0,100])
+# plt.axis([0,100,0,100])
 ############################## PROBLEME ##############################
 
 class Flowshop(object):
@@ -18,13 +18,17 @@ class Flowshop(object):
 
     Une tache doit etre terminée pour être lancée sur une autre machine
     """
-    def __init__(self, n, m, p, d):
+    def __init__(self, n, m, p, d, ident=0):
         super(Flowshop, self).__init__()
         # Les données d'entrée du problème
+        self.id = ident
         self.n = n # nombre de taches INT
         self.m = m # nombre de machines INT
         self.p = p[:] # p[i][j] temps de traitement du job i sur la machine j LIST OF LIST OF INT
         self.d = d[:] # d[i] date de fin souhaité du job i
+
+    def __str__(self):
+        return "problème id : " + str(self.id) + "\n n = " + str(self.n) + "\n m = " + str(self.m) + "\n p = " + str(self.p)+ "\n d = " + str(self.d)
 
     def certificatAlea(self) :
         """
@@ -170,6 +174,33 @@ def nbVisited(listeCertificats) :
         if certificat.visited :
             cpt+= 1
     return cpt
+
+def strLineIntoIntList(chaine) :
+    strList = chaine.split()
+    intList = []
+    for strElt in strList :
+        intList.append(int(float(strElt)))
+    return intList
+
+def lecture(pathname) :
+    '''
+    prend le pathname d'un fichier .dat et renvoie une instance de Flowshop a partir de se fichier
+    '''
+    fichier = open(pathname)
+    n = int(float(fichier.readline())) #oui c est moche mais bon
+    m = int(float(fichier.readline()))
+    p = []
+    d = []
+    identifiant = int(float(fichier.readline()))
+    for i in range(n) :
+        indice = int(float(fichier.readline()))
+        fin = int(float(fichier.readline()))
+        d.append(fin)
+        chaine = fichier.readline()
+        p.append(strLineIntoIntList(chaine))
+    fichier.close()
+    return Flowshop(n,m,p,d,ident=identifiant)
+
 
 
 def flowshopAlea(n,m,maxRandP,maxRandD) :

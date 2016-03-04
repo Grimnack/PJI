@@ -4,16 +4,16 @@ import VoisinageSimple as simple
 import VoisinageGauche as gauche
 import matplotlib.pyplot as plt
 
-n = 5
-m = 4
-matrix = [[5,4,4,3],
-          [5,4,4,6],
-          [3,2,3,3],
-          [6,4,4,2],
-          [3,4,1,5]]
-d = [25,20,10,30,30] # a faire a la main
-fl = Flowshop.Flowshop(n,m,matrix,d)
-certificat = FlowshopCertificat.FlowshopCertificat([0,1,2,3,4])
+# n = 5
+# m = 4
+# matrix = [[5,4,4,3],
+#           [5,4,4,6],
+#           [3,2,3,3],
+#           [6,4,4,2],
+#           [3,4,1,5]]
+# d = [25,20,10,30,30] # a faire a la main
+# fl = Flowshop.Flowshop(n,m,matrix,d)
+# certificat = FlowshopCertificat.FlowshopCertificat([0,1,2,3,4])
 
 def testDomine() :
     green = (1,1)
@@ -45,6 +45,21 @@ def testOptimisationDirecteGauche(trace = False) :
     for voisin in voisinageGauche :
         print(voisin.certificat.permutation)
 
-testOptimisationDirecteSimple(trace = True)
+def testLecture() :
+    fl = Flowshop.lecture("data/data/bass/bass_5_9_1.dat")
+    print(fl)
+
+def testSimpleData(pathname) :
+    fl = Flowshop.lecture(pathname)
+    voisinageSimple = []
+    for i in range(10) :
+        voisinageSimple.append(simple.VoisinageSimple(fl.certificatAlea()))
+    fl.optimisationDirecteSimple(voisinageSimple, True)
+    for voisin in voisinageSimple :
+        print(voisin.certificat.permutation)        
+
+testSimpleData("data/data/bass/bass_10_10_1.dat")
+# testLecture()
+# testOptimisationDirecteSimple(trace = True)
 # testOptimisationDirecteGauche(trace = True)
 # testDomine()
