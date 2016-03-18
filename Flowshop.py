@@ -43,6 +43,9 @@ class Flowshop(object):
 
     def eval(self,certificat,cmax,tsum,tmax,usum) :
         '''
+        [FlowshopCertificat]->[bool]->[bool]->[bool]->[bool]->[vecteurScore]
+        Entrée le certificat a évaluer  
+               les objectifs a renvoyer si leur valeur vaut True
         Renvoie Cmax,Tsum,Tmax,Usum
         '''
         if certificat.score != None :
@@ -68,7 +71,7 @@ class Flowshop(object):
                             Tsum = Tsum + retard
                             if retard > Tmax :
                                 Tmax = retard
-        certificat.score = (travail[-1],Tsum) 
+        Cmax = travail[-1] 
 
         vecteurScore = []
 
@@ -81,9 +84,13 @@ class Flowshop(object):
         if usum :
             vecteurScore.append(Usum)
 
-        return (travail[-1],Tsum,Tmax,Usum)
+        certificat.score = vecteurScore
+        return vecteurScore
 
     def doTrace(self,voisinages,chaine,cmax,tsum,tmax,usum) :
+        '''
+        Fonction ajoutant les points de score au pyplot (graphique)
+        '''
         for voisin in voisinages :
             (x,y) = self.eval(voisin.certificat,cmax,tsum,tmax,usum)
             plt.plot(x,y,chaine)
@@ -146,15 +153,16 @@ class Flowshop(object):
         on ajoute uniquement le premier meilleur voisin pour l'iteration suivante
         si pas de meilleurs on laisse notre certificat actuel 
         '''
-        listeVoisins = self.cleanse(listeInit)
+        listeVoisins = self.cleanse(listeInit,cmax,tsum,tmax,usum)
         allVisited = False
         if trace :
-            self.doTrace(listeVoisins,'ro')
+            self.doTrace(listeVoisins,'ro',cmax,tsum,tmax,usum)
         while True:
             (voisin,allVisited) = randomPick(listeVoisins)
             if allVisited :
                 break
             voisin.certificat.visited = True
+            best = None
             while voisin.hasNext() :
                 candidat = voisin.next()
                 scoreCandidat= self.eval(candidat.certificat,cmax,tsum,tmax,usum)
@@ -168,15 +176,29 @@ class Flowshop(object):
                     elif self.domine(scoreTest,scoreCandidat) :
                         dominated = True
                 if not dominated and not (candidat in listeVoisins)  :
-                    listeVoisins.append(candidat)
-                    break
+                    if first :
+                        listeVoisins.append(candidat)
+                        break
+                    else :
+                        if best is None :
+                            best = candidat
+                        else :
+                            if self.domine(scoreCandidat,self.eval(best.certificat,cmax,tsum,tmax,usum)) :
+                                best = candidat
+            if (not first) and best is not None :
+                listeVoisins.append(best)
+
         if trace :
-            self.doTrace(listeVoisins,'bo') 
+            self.doTrace(listeVoisins,'bo',cmax,tsum,tmax,usum) 
             plt.show()
 
         return listeVoisins
 
     def genereFileName(self,numIteration,cmax,tsum,tmax,usum) :
+        '''
+        Utile pour la création de fichier de sortie
+        Renvoie le nom de fichier correspondant a la configuration du problème
+        '''
         chemin = "" 
         chemin = chemin + str(self.id)+'_'+str(self.n)+'_'+str(self.m)
         if cmax :
