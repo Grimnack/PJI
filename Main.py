@@ -33,7 +33,7 @@ def testOptimisationDirecteSimple(trace = False):
     voisinageSimple = []
     for i in range(10) :
         voisinageSimple.append(simple.VoisinageSimple(fl.certificatAlea()))
-    fl.optimisationDirecteSimple(voisinageSimple, trace)
+    fl.PLS(voisinageSimple, trace)
     for voisin in voisinageSimple :
         print(voisin.certificat.permutation)
 
@@ -41,7 +41,7 @@ def testOptimisationDirecteGauche(trace = False) :
     voisinageGauche = []
     for i in range(10) :
         voisinageGauche.append(gauche.VoisinageGauche(fl.certificatAlea()))
-    fl.optimisationDirecteSimple(voisinageGauche, trace)
+    fl.PLS(voisinageGauche, trace)
     for voisin in voisinageGauche :
         print(voisin.certificat.permutation)
 
@@ -54,11 +54,20 @@ def testSimpleData(pathname) :
     voisinageSimple = []
     for i in range(10) :
         voisinageSimple.append(simple.VoisinageSimple(fl.certificatAlea()))
-    fl.optimisationDirecteSimple(voisinageSimple, True)
+    fl.PLS(voisinageSimple, True)
     for voisin in voisinageSimple :
-        print(voisin.certificat.permutation)        
+        print(voisin.certificat.permutation)
 
-testSimpleData("data/data/bass/bass_10_10_1.dat")
+def tesGenereFileName(fl) :
+    for i in range(10) :
+        print(fl.genereFileName(i,True,True,True,True))
+        print(fl.genereFileName(i,False,False,True,True))
+        print(fl.genereFileName(i,False,False,False,False))        
+
+fl = Flowshop.lecture("data/data/bass/bass_5_9_1.dat")
+tesGenereFileName(fl)
+
+# testSimpleData("data/data/bass/bass_10_10_1.dat")
 # testLecture()
 # testOptimisationDirecteSimple(trace = True)
 # testOptimisationDirecteGauche(trace = True)
