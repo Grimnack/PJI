@@ -24,3 +24,6 @@ class VoisinageGauche(object):
         permut[-1] = pick
         self.iterator+= 1
         return VoisinageGauche(cert.FlowshopCertificat(permut))
+
+    def giveName() :
+        return "shift"

@@ -18,9 +18,10 @@ class Flowshop(object):
 
     Une tache doit etre terminée pour être lancée sur une autre machine
     """
-    def __init__(self, n, m, p, d, ident=0):
+    def __init__(self, n, m, p, d, ident=0, type_name="defaut"):
         super(Flowshop, self).__init__()
         # Les données d'entrée du problème
+        self.type = type_name
         self.id = ident
         self.n = n # nombre de taches INT
         self.m = m # nombre de machines INT
@@ -155,6 +156,7 @@ class Flowshop(object):
         '''
         listeVoisins = self.cleanse(listeInit,cmax,tsum,tmax,usum)
         allVisited = False
+        nomVoisinage = listeVoisins[0].giveName()
         if trace :
             self.doTrace(listeVoisins,'ro',cmax,tsum,tmax,usum)
         while True:
@@ -192,15 +194,19 @@ class Flowshop(object):
             self.doTrace(listeVoisins,'bo',cmax,tsum,tmax,usum) 
             plt.show()
 
-        return listeVoisins
+        listeScore = []
+        for voisin in listeVoisins :
+            listeScore.append(self.eval(voisin.certificat,cmax,tsum,tmax,usum))
 
-    def genereFileName(self,numIteration,cmax,tsum,tmax,usum) :
+        return listeScore
+
+    def genereFileName(self,numIteration,cmax,tsum,tmax,usum,first,nomVoisinage) :
         '''
         Utile pour la création de fichier de sortie
         Renvoie le nom de fichier correspondant a la configuration du problème
         '''
-        chemin = "" 
-        chemin = chemin + str(self.id)+'_'+str(self.n)+'_'+str(self.m)
+        chemin = self.type
+        chemin = chemin +'_' + str(self.id)+'_'+str(self.n)+'_'+str(self.m)
         if cmax :
             chemin = chemin + '_cmax'
         if tsum :
@@ -209,6 +215,11 @@ class Flowshop(object):
             chemin = chemin + '_tmax'
         if usum :
             chemin = chemin + '_tsum'
+        if first :
+            chemin = chemin + '_first'
+        else : 
+            chemin = chemin + '_best'
+        chemin = chemin + '_' + nomVoisinage
         chemin = chemin + '_' + str(numIteration)
         chemin = chemin + '.out'
         return chemin

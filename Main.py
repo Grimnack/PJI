@@ -69,14 +69,14 @@ def testSimpleDataBest(pathname) :
 
 def tesGenereFileName(fl) :
     for i in range(10) :
-        print(fl.genereFileName(i,True,True,True,True))
-        print(fl.genereFileName(i,False,False,True,True))
-        print(fl.genereFileName(i,False,False,False,False))        
+        print(fl.genereFileName(i,True,True,True,True,True,'shift'))
+        print(fl.genereFileName(i,False,False,True,True,True,'shift'))
+        print(fl.genereFileName(i,False,False,False,False,True,'shift'))        
 
-# fl = Flowshop.lecture("data/data/bass/bass_5_9_1.dat")
-# tesGenereFileName(fl)
+fl = Flowshop.lecture("data/data/bass/bass_5_9_1.dat")
+tesGenereFileName(fl)
 
-testSimpleDataBest("data/data/bass/bass_10_10_1.dat")
+# testSimpleDataBest("data/data/bass/bass_10_10_1.dat")
 # testSimpleData("data/data/bass/bass_10_10_1.dat")
 # testLecture()
 # testOptimisationDirecteSimple(trace = True)

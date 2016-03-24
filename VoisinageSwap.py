@@ -27,3 +27,5 @@ class VoisinageSwap(object):
             self.j = i + 1
         return permut
         
+    def giveName() :
+        return "swap"
