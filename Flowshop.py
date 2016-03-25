@@ -156,7 +156,6 @@ class Flowshop(object):
         '''
         listeVoisins = self.cleanse(listeInit,cmax,tsum,tmax,usum)
         allVisited = False
-        nomVoisinage = listeVoisins[0].giveName()
         if trace :
             self.doTrace(listeVoisins,'ro',cmax,tsum,tmax,usum)
         while True:

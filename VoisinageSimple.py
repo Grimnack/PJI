@@ -28,5 +28,5 @@ class VoisinageSimple(object):
         self.iterator += 1
         return VoisinageSimple(cert.FlowshopCertificat(permut)) 
 
-    def giveName() :
+    def giveName(self) :
         return "cont"

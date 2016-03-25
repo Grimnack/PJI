@@ -125,7 +125,7 @@ def scriptList(listType,typeName,objectifs,dossier) :
 
 #######################################################
 
-# lesBass = listBass()
+lesBass = listBass()
 # lesLief = listLief()
 # lesRuiz = listRuiz()
 # lesUnif = listUnif()
@@ -136,9 +136,9 @@ def scriptList(listType,typeName,objectifs,dossier) :
 # os.mkdir('sortie/ruiz')
 # os.mkdir('sortie/unif')
 
-# objectifs = lesCouples()
+objectifs = lesCouples()
 
-# scriptList(lesBass,'bass',objectifs,'sortie/bass/')
+scriptList(lesBass,'bass',objectifs,'sortie/bass/')
 # scriptList(lesLief,'lief',objectifs,'sortie/lief/')
 # scriptList(lesRuiz,'ruiz',objectifs,'sortie/ruiz/')
 # scriptList(lesUnif,'unif',objectifs,'sortie/unif/')
