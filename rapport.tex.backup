@@ -60,7 +60,7 @@
     Recherche locale, parce qu'a chaque tour on va observer ce qu'on va appeler un voisin et voir si ce voisin 
     est une meilleure solution que la solution actuelle et sinon observer le voisin suivant et ainsi avancer 
     vers une solution optimisée. Et optimum de Pareto du nom de son iventeur Vilfredo Pareto on ne peut pas améliorer le 
-    résultat d'un objectif sans détériorer un autre objectif.
+    résultat d'un objectif sans 
   
   \section{Implémentation et Résultats}
     

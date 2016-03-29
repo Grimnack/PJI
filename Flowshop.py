@@ -18,9 +18,10 @@ class Flowshop(object):
 
     Une tache doit etre terminée pour être lancée sur une autre machine
     """
-    def __init__(self, n, m, p, d, ident=0):
+    def __init__(self, n, m, p, d, ident=0, type_name="defaut"):
         super(Flowshop, self).__init__()
         # Les données d'entrée du problème
+        self.type = type_name
         self.id = ident
         self.n = n # nombre de taches INT
         self.m = m # nombre de machines INT
@@ -41,14 +42,19 @@ class Flowshop(object):
         random.shuffle(listeTaches)
         return FlowshopCertificat.FlowshopCertificat(listeTaches)
 
-    def eval(self,certificat) :
+    def eval(self,certificat,cmax,tsum,tmax,usum) :
         '''
-        Renvoie Cmax,retards
+        [FlowshopCertificat]->[bool]->[bool]->[bool]->[bool]->[vecteurScore]
+        Entrée le certificat a évaluer  
+               les objectifs a renvoyer si leur valeur vaut True
+        Renvoie Cmax,Tsum,Tmax,Usum
         '''
         if certificat.score != None :
             return certificat.score
         travail = [0] * self.m # Tableau témoins du temps de calcul par machine
-        retards = 0
+        Tsum = 0 # Somme des retards 
+        Tmax = 0 # Le retard le plus long
+        Usum = 0 # Nombre de travaux en retard 
 
         for iTravail in certificat.permutation :
             for iMachine in range(self.m) :
@@ -61,14 +67,34 @@ class Flowshop(object):
                         travail[iMachine] = travail[iMachine] + self.p[iTravail][iMachine]
                     if iMachine == self.m -1 :
                         if travail[iMachine] > self.d[iTravail] :
-                            retards = retards + travail[iMachine] - self.d[iTravail]
-        certificat.score = (travail[-1],retards) 
-        return (travail[-1],retards)
+                            retard = travail[iMachine] - self.d[iTravail]
+                            Usum += 1
+                            Tsum = Tsum + retard
+                            if retard > Tmax :
+                                Tmax = retard
+        Cmax = travail[-1] 
 
-    def doTrace(self,voisinages,chaine) :
+        vecteurScore = []
+
+        if cmax :
+            vecteurScore.append(Cmax)
+        if tsum :
+            vecteurScore.append(Tsum)
+        if tmax :
+            vecteurScore.append(Tmax)
+        if usum :
+            vecteurScore.append(Usum)
+
+        certificat.score = vecteurScore
+        return vecteurScore
+
+    def doTrace(self,voisinages,chaine,cmax,tsum,tmax,usum) :
+        '''
+        Fonction ajoutant les points de score au pyplot (graphique)
+        '''
         for voisin in voisinages :
-            (scoreCMAX,scoreRETARD) = self.eval(voisin.certificat)
-            plt.plot(scoreCMAX,scoreRETARD,chaine)
+            (x,y) = self.eval(voisin.certificat,cmax,tsum,tmax,usum)
+            plt.plot(x,y,chaine)
 
     def domine(self,scores1,scores2) :
         '''
@@ -91,7 +117,7 @@ class Flowshop(object):
                 domine = False
         return domine
 
-    def cleanse(self, listeVoisins) :
+    def cleanse(self, listeVoisins,cmax,tsum,tmax,usum) :
         '''
         Supprime les éléments moins bons que d'autres dans la liste
         entrée liste L
@@ -99,15 +125,15 @@ class Flowshop(object):
         '''
         #calcul du score pour tous le monde une seule fois
         for voisin in listeVoisins :
-            self.eval(voisin.certificat)
+            self.eval(voisin.certificat,cmax,tsum,tmax,usum)
 
         nouvelle = []
         while listeVoisins : #tant que la liste n est pas vide
             test = listeVoisins.pop(0)
             dominated = False
             for voisin in listeVoisins :
-                score1 = self.eval(voisin.certificat)
-                scoreTest = self.eval(test.certificat)
+                score1 = self.eval(voisin.certificat,cmax,tsum,tmax,usum)
+                scoreTest = self.eval(test.certificat,cmax,tsum,tmax,usum)
                 if self.domine(score1,scoreTest) :
                     dominated = True
                 if self.domine(scoreTest,score1) :
@@ -117,7 +143,7 @@ class Flowshop(object):
         return nouvelle
 
 
-    def optimisationDirecteSimple(self,listeInit,trace=False) :
+    def PLS(self,listeInit,first=True,trace=False,cmax=True,tsum=True,tmax=False,usum=False) :
         '''
 
         Entrée : une liste de certificats acceptables
@@ -128,36 +154,76 @@ class Flowshop(object):
         on ajoute uniquement le premier meilleur voisin pour l'iteration suivante
         si pas de meilleurs on laisse notre certificat actuel 
         '''
-        listeVoisins = self.cleanse(listeInit)
+        listeVoisins = self.cleanse(listeInit,cmax,tsum,tmax,usum)
         allVisited = False
         if trace :
-            self.doTrace(listeVoisins,'ro')
+            self.doTrace(listeVoisins,'ro',cmax,tsum,tmax,usum)
         while True:
             (voisin,allVisited) = randomPick(listeVoisins)
             if allVisited :
                 break
             voisin.certificat.visited = True
+            best = None
             while voisin.hasNext() :
                 candidat = voisin.next()
-                scoreCandidat= self.eval(candidat.certificat)
+                scoreCandidat= self.eval(candidat.certificat,cmax,tsum,tmax,usum)
                 if trace :
                     plt.plot(scoreCandidat[0],scoreCandidat[1],'ro')
                 dominated = False
                 for test in listeVoisins :
-                    scoreTest = self.eval(test.certificat)
+                    scoreTest = self.eval(test.certificat,cmax,tsum,tmax,usum)
                     if self.domine(scoreCandidat,scoreTest) :
                         listeVoisins.remove(test)
                     elif self.domine(scoreTest,scoreCandidat) :
                         dominated = True
                 if not dominated and not (candidat in listeVoisins)  :
-                    listeVoisins.append(candidat)
-                    break
+                    if first :
+                        listeVoisins.append(candidat)
+                        break
+                    else :
+                        if best is None :
+                            best = candidat
+                        else :
+                            if self.domine(scoreCandidat,self.eval(best.certificat,cmax,tsum,tmax,usum)) :
+                                best = candidat
+            if (not first) and best is not None :
+                listeVoisins.append(best)
+
         if trace :
-            self.doTrace(listeVoisins,'bo') 
+            self.doTrace(listeVoisins,'bo',cmax,tsum,tmax,usum) 
             plt.show()
 
-        return listeVoisins
- 
+        listeScore = []
+        for voisin in listeVoisins :
+            listeScore.append(self.eval(voisin.certificat,cmax,tsum,tmax,usum))
+
+        return listeScore
+
+    def genereFileName(self,numIteration,cmax,tsum,tmax,usum,first,nomVoisinage) :
+        '''
+        Utile pour la création de fichier de sortie
+        Renvoie le nom de fichier correspondant a la configuration du problème
+        '''
+        chemin = self.type
+        chemin = chemin +'_' + str(self.id)+'_'+str(self.n)+'_'+str(self.m)
+        if cmax :
+            chemin = chemin + '_cmax'
+        if tsum :
+            chemin = chemin + '_tsum'
+        if tmax :
+            chemin = chemin + '_tmax'
+        if usum :
+            chemin = chemin + '_tsum'
+        if first :
+            chemin = chemin + '_first'
+        else : 
+            chemin = chemin + '_best'
+        chemin = chemin + '_' + nomVoisinage
+        chemin = chemin + '_' + str(numIteration)
+        chemin = chemin + '.out'
+        return chemin
+
+
 
 ################################ GLOBAL ################################
 
