@@ -143,7 +143,7 @@ class Flowshop(object):
         return nouvelle
 
 
-    def PLS(self,listeInit,first=True,trace=False,cmax=True,tsum=True,tmax=False,usum=False) :
+    def PLS(self,listeInit,archive=False,first=True,trace=False,cmax=True,tsum=True,tmax=False,usum=False) :
         '''
 
         Entrée : une liste de certificats acceptables
@@ -156,6 +156,7 @@ class Flowshop(object):
         '''
         listeVoisins = self.cleanse(listeInit,cmax,tsum,tmax,usum)
         allVisited = False
+        archiveVisited = [] #histoire de ne pas boucler, je ne sais pas si on fait comme ça
         if trace :
             self.doTrace(listeVoisins,'ro',cmax,tsum,tmax,usum)
         while True:
@@ -165,10 +166,11 @@ class Flowshop(object):
             voisin.certificat.visited = True
             best = None
             while voisin.hasNext() :
+                equivalent = None
                 candidat = voisin.next()
                 scoreCandidat= self.eval(candidat.certificat,cmax,tsum,tmax,usum)
                 if trace :
-                    plt.plot(scoreCandidat[0],scoreCandidat[1],'ro')
+                    plt.plot(scoreCandidat[0],scoreCandidat[1],'ro') #ici faudrait mettre dotrace 
                 dominated = False
                 for test in listeVoisins :
                     scoreTest = self.eval(test.certificat,cmax,tsum,tmax,usum)
@@ -176,7 +178,9 @@ class Flowshop(object):
                         listeVoisins.remove(test)
                     elif self.domine(scoreTest,scoreCandidat) :
                         dominated = True
-                if not dominated and not (candidat in listeVoisins)  :
+                    if scoreTest == scoreCandidat :
+                        equivalent = test
+                if not dominated and not (candidat in listeVoisins) and equivalent is None :
                     if first :
                         listeVoisins.append(candidat)
                         break
@@ -186,6 +190,12 @@ class Flowshop(object):
                         else :
                             if self.domine(scoreCandidat,self.eval(best.certificat,cmax,tsum,tmax,usum)) :
                                 best = candidat
+                elif archive :
+                    if not (candidat in archiveVisited) :
+                        listeVoisins.remove(test)
+                        listeVoisins.append(candidat)
+                        archiveVisited.append(test)
+
             if (not first) and best is not None :
                 listeVoisins.append(best)
 
