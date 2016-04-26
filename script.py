@@ -52,7 +52,7 @@ def listUnif() :
     return glob.glob('data/data/unif/*.dat')
 
 # OK !
-def creeFichier(pathname,listeScore) :
+def creeFichier(pathname,listeScore,complexite,temps) :
     '''
     cree le fichier et ecris les scores dedans
     '''
@@ -61,6 +61,10 @@ def creeFichier(pathname,listeScore) :
         for element in score :
             f.write(str(element)+'\t')
         f.write('\n')
+    f.write("#C#\n")
+    f.write(str(complexite)+'\n')
+    f.write("#T#\n")
+    f.write(str(temps))
     f.close()
 
 def scriptList(listType,typeName,objectifs,dossier) :
@@ -72,48 +76,33 @@ def scriptList(listType,typeName,objectifs,dossier) :
 
     lance le script mais pour un seul type
     '''
+    archiveL = [True,False]
+    firstL = [True,False]
     for pathname in listType :
         fl = Flowshop.lecture(pathname)
         fl.type = typeName
         for config in objectifs :
-            first = True
-            for i in range(30) :
-                r.seed(i)
-                certif       = fl.certificatAlea()
-                #Simple
-                voisinSimple = simple.VoisinageSimple(certif)
-                resSimple    = fl.PLS([voisinSimple],first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
-                cheminSimple = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,voisinSimple.giveName())
-                creeFichier(dossier+cheminSimple,resSimple)
-                #Shift
-                voisinGauche = gauche.VoisinageGauche(certif)
-                resGauche    = fl.PLS([voisinGauche],first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
-                cheminGauche = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,voisinGauche.giveName())
-                creeFichier(dossier+cheminGauche,resGauche)
-                #Swap
-                voisinSwap   = swap.VoisinageSwap(certif)
-                resSwap      = fl.PLS([voisinSwap],first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
-                cheminSwap = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,voisinSwap.giveName())
-                creeFichier(dossier+cheminSwap,resSwap)
-            first = False
-            for i in range(30) :
-                r.seed(i)
-                certif       = fl.certificatAlea()
-                #Simple
-                voisinSimple = simple.VoisinageSimple(certif)
-                resSimple    = fl.PLS([voisinSimple],first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
-                cheminSimple = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,voisinSimple.giveName())
-                creeFichier(dossier+cheminSimple,resSimple)
-                #Shift
-                voisinGauche = gauche.VoisinageGauche(certif)
-                resGauche    = fl.PLS([voisinGauche],first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
-                cheminGauche = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,voisinGauche.giveName())
-                creeFichier(dossier+cheminGauche,resGauche)
-                #Swap
-                voisinSwap   = swap.VoisinageSwap(certif)
-                resSwap      = fl.PLS([voisinSwap],first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
-                cheminSwap = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,voisinSwap.giveName())
-                creeFichier(dossier+cheminSwap,resSwap)
+            for first in firstL :
+                for archive in archiveL :
+                    for i in range(30) :
+                        r.seed(i)
+                        certif       = fl.certificatAlea()
+                        #Simple
+                        voisinSimple = simple.VoisinageSimple(certif)
+                        (resSimple,nbEval,time)    = fl.PLS([voisinSimple],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
+                        cheminSimple = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinSimple.giveName())
+                        creeFichier(dossier+cheminSimple,resSimple,nbEval,time)
+                        #Shift
+                        voisinGauche = gauche.VoisinageGauche(certif)
+                        (resGauche,nbEval,time)    = fl.PLS([voisinGauche],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
+                        cheminGauche = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinGauche.giveName())
+                        creeFichier(dossier+cheminGauche,resGauche,,nbEval,time)
+                        #Swap
+                        voisinSwap   = swap.VoisinageSwap(certif)
+                        (resSwap,nbEval,time)      = fl.PLS([voisinSwap],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
+                        cheminSwap = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinSwap.giveName())
+                        creeFichier(dossier+cheminSwap,resSwap,nbEval,time)
+
 
 
 

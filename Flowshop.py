@@ -2,6 +2,7 @@
 import random
 import FlowshopCertificat
 import matplotlib.pyplot as plt
+import time
 # les contraintes de gamme, toutes les tâches doivent passer sur toutes les machines, de la machine 1 à la machine m ;
 # les contraintes de ressource, une machine ne peut traiter qu'une tâche à la fois.
 
@@ -42,7 +43,7 @@ class Flowshop(object):
         random.shuffle(listeTaches)
         return FlowshopCertificat.FlowshopCertificat(listeTaches)
 
-    def eval(self,certificat,cmax,tsum,tmax,usum) :
+    def eval(self,certificat,cmax,tsum,tmax,usum,cptEval) :
         '''
         [FlowshopCertificat]->[bool]->[bool]->[bool]->[bool]->[vecteurScore]
         Entrée le certificat a évaluer  
@@ -50,7 +51,7 @@ class Flowshop(object):
         Renvoie Cmax,Tsum,Tmax,Usum
         '''
         if certificat.score != None :
-            return certificat.score
+            return (certificat.score,cptEval)
         travail = [0] * self.m # Tableau témoins du temps de calcul par machine
         Tsum = 0 # Somme des retards 
         Tmax = 0 # Le retard le plus long
@@ -86,7 +87,7 @@ class Flowshop(object):
             vecteurScore.append(Usum)
 
         certificat.score = vecteurScore
-        return vecteurScore
+        return (vecteurScore,cptEval+1)
 
     def doTrace(self,voisinages,chaine,cmax,tsum,tmax,usum) :
         '''
@@ -154,7 +155,9 @@ class Flowshop(object):
         on ajoute uniquement le premier meilleur voisin pour l'iteration suivante
         si pas de meilleurs on laisse notre certificat actuel 
         '''
-        listeVoisins = self.cleanse(listeInit,cmax,tsum,tmax,usum)
+        start_time = time.time()
+        cptEval = 0
+        # listeVoisins = self.cleanse(listeInit,cmax,tsum,tmax,usum)
         allVisited = False
         archiveVisited = [] #histoire de ne pas boucler, je ne sais pas si on fait comme ça
         if trace :
@@ -168,12 +171,12 @@ class Flowshop(object):
             while voisin.hasNext() :
                 equivalent = None
                 candidat = voisin.next()
-                scoreCandidat= self.eval(candidat.certificat,cmax,tsum,tmax,usum)
+                (scoreCandidat,cptEval)= self.eval(candidat.certificat,cmax,tsum,tmax,usum,cptEval)
                 if trace :
                     plt.plot(scoreCandidat[0],scoreCandidat[1],'ro') #ici faudrait mettre dotrace 
                 dominated = False
                 for test in listeVoisins :
-                    scoreTest = self.eval(test.certificat,cmax,tsum,tmax,usum)
+                    (scoreTest,cptEval) = self.eval(test.certificat,cmax,tsum,tmax,usum,cptEval)
                     if self.domine(scoreCandidat,scoreTest) :
                         listeVoisins.remove(test)
                     elif self.domine(scoreTest,scoreCandidat) :
@@ -188,7 +191,8 @@ class Flowshop(object):
                         if best is None :
                             best = candidat
                         else :
-                            if self.domine(scoreCandidat,self.eval(best.certificat,cmax,tsum,tmax,usum)) :
+                            (scoreCleanse,cptEval)=self.eval(best.certificat,cmax,tsum,tmax,usum,cptEval)
+                            if self.domine(scoreCandidat,scoreCleanse) :
                                 best = candidat
                 elif archive :
                     if not (candidat in archiveVisited) :
@@ -205,11 +209,12 @@ class Flowshop(object):
 
         listeScore = []
         for voisin in listeVoisins :
-            listeScore.append(self.eval(voisin.certificat,cmax,tsum,tmax,usum))
+            (evalFinale,cptEval) = self.eval(voisin.certificat,cmax,tsum,tmax,usum,cptEval)
+            listeScore.append(evalFinale)
+        timeTotal = time.time() - start_time
+        return (listeScore,cptEval,timeTotal)
 
-        return listeScore
-
-    def genereFileName(self,numIteration,cmax,tsum,tmax,usum,first,nomVoisinage) :
+    def genereFileName(self,numIteration,cmax,tsum,tmax,usum,first,archive,nomVoisinage) :
         '''
         Utile pour la création de fichier de sortie
         Renvoie le nom de fichier correspondant a la configuration du problème
@@ -228,6 +233,10 @@ class Flowshop(object):
             chemin = chemin + '_first'
         else : 
             chemin = chemin + '_best'
+        if archive :
+            chemin = chemin + '_archTrue'
+        else :
+            chemin = chemin + '_archFalse'
         chemin = chemin + '_' + nomVoisinage
         chemin = chemin + '_' + str(numIteration)
         chemin = chemin + '.out'
