@@ -51,7 +51,7 @@ class Flowshop(object):
         Renvoie Cmax,Tsum,Tmax,Usum
         '''
         if certificat.score != None :
-            return (certificat.score,cptEval)
+            return certificat.score
         travail = [0] * self.m # Tableau témoins du temps de calcul par machine
         Tsum = 0 # Somme des retards 
         Tmax = 0 # Le retard le plus long
@@ -87,7 +87,8 @@ class Flowshop(object):
             vecteurScore.append(Usum)
 
         certificat.score = vecteurScore
-        return (vecteurScore,cptEval+1)
+        cptEval += 1
+        return vecteurScore
 
     def doTrace(self,voisinages,chaine,cmax,tsum,tmax,usum) :
         '''
@@ -102,14 +103,10 @@ class Flowshop(object):
         scores1 domine scores2 sisi scores1[i] <= scores2[i] et scores1 != scores2
         '''
         toujoursInfouEgal = True
-        SUP = False
-
         for i in range(len(scores2)) :
             if not (scores1[i] <= scores2[i]) :
                 toujoursInfouEgal = False
-            if scores1[i] < scores2[i] :
-                SUP = True
-        return toujoursInfouEgal and SUP
+        return toujoursInfouEgal and scores1 != scores2
 
     def domineFortement(self,scores1,scores2):
         domine = True
@@ -144,7 +141,79 @@ class Flowshop(object):
         return nouvelle
 
 
-    def PLS(self,listeVoisins,archive=False,first=True,trace=False,cmax=True,tsum=True,tmax=False,usum=False) :
+    # def PLS(self,listeVoisins,archive=False,first=True,trace=False,cmax=True,tsum=True,tmax=False,usum=False) :
+    #     '''
+
+    #     Entrée : une liste de certificats acceptables
+
+    #     option trace pour matplotlib
+
+    #     pour chaque certificats on calcule les voisins,
+    #     on ajoute uniquement le premier meilleur voisin pour l'iteration suivante
+    #     si pas de meilleurs on laisse notre certificat actuel 
+    #     '''
+    #     start_time = time.time()
+    #     cptEval = 0
+    #     # listeVoisins = self.cleanse(listeInit,cmax,tsum,tmax,usum)
+    #     allVisited = False
+    #     pareto = listeVoisins[:] #histoire de ne pas boucler, je ne sais pas si on fait comme ça
+    #     if trace :
+    #         self.doTrace(listeVoisins,'ro',cmax,tsum,tmax,usum)
+    #     while True:
+    #         (voisin,allVisited) = randomPick(listeVoisins)
+    #         if allVisited :
+    #             break
+    #         voisin.certificat.visited = True
+    #         best = None
+    #         while voisin.hasNext() :
+    #             equivalent = None
+    #             candidat = voisin.next()
+    #             (scoreCandidat,cptEval)= self.eval(candidat.certificat,cmax,tsum,tmax,usum,cptEval)
+    #             if trace :
+    #                 plt.plot(scoreCandidat[0],scoreCandidat[1],'ro') #ici faudrait mettre dotrace 
+    #             dominated = False
+    #             for test in listeVoisins :
+    #                 (scoreTest,cptEval) = self.eval(test.certificat,cmax,tsum,tmax,usum,cptEval)
+    #                 if self.domine(scoreCandidat,scoreTest) :
+    #                     listeVoisins.remove(test)
+    #                 elif self.domine(scoreTest,scoreCandidat) :
+    #                     dominated = True
+    #                 if scoreTest == scoreCandidat :
+    #                     equivalent = test
+    #             if not dominated and not (candidat in listeVoisins) and equivalent is None :
+    #                 if first :
+    #                     listeVoisins.append(candidat)
+    #                     break
+    #                 else :
+    #                     if best is None :
+    #                         best = candidat
+    #                     else :
+    #                         (scoreCleanse,cptEval)=self.eval(best.certificat,cmax,tsum,tmax,usum,cptEval)
+    #                         if self.domine(scoreCandidat,scoreCleanse) :
+    #                             best = candidat
+    #             elif archive :
+    #                 if not (candidat in archiveVisited) :
+    #                     listeVoisins.remove(test)
+    #                     listeVoisins.append(candidat)
+    #                     archiveVisited.append(test)
+
+    #         if (not first) and best is not None :
+    #             listeVoisins.append(best)
+
+    #     if trace :
+    #         self.doTrace(listeVoisins,'bo',cmax,tsum,tmax,usum) 
+    #         plt.show()
+
+    #     listeScore = []
+    #     for voisin in listeVoisins :
+    #         (evalFinale,cptEval) = self.eval(voisin.certificat,cmax,tsum,tmax,usum,cptEval)
+    #         listeScore.append(evalFinale)
+    #     timeTotal = time.time() - start_time
+    #     return (listeScore,cptEval,timeTotal)
+
+
+
+    def PLS(self,listeVoisins,archive=False,first=True,best=False,trace=False,cmax=True,tsum=True,tmax=False,usum=False) :
         '''
 
         Entrée : une liste de certificats acceptables
@@ -156,63 +225,54 @@ class Flowshop(object):
         si pas de meilleurs on laisse notre certificat actuel 
         '''
         start_time = time.time()
+        for solution in listeVoisins :
+            solution.visited = False
         cptEval = 0
-        # listeVoisins = self.cleanse(listeInit,cmax,tsum,tmax,usum)
-        allVisited = False
-        archiveVisited = [] #histoire de ne pas boucler, je ne sais pas si on fait comme ça
-        if trace :
-            self.doTrace(listeVoisins,'ro',cmax,tsum,tmax,usum)
-        while True:
-            (voisin,allVisited) = randomPick(listeVoisins)
-            if allVisited :
-                break
-            voisin.certificat.visited = True
-            best = None
-            while voisin.hasNext() :
-                equivalent = None
-                candidat = voisin.next()
-                (scoreCandidat,cptEval)= self.eval(candidat.certificat,cmax,tsum,tmax,usum,cptEval)
-                if trace :
-                    plt.plot(scoreCandidat[0],scoreCandidat[1],'ro') #ici faudrait mettre dotrace 
+        pareto = listeVoisins[:]
+        while listeVoisins != []:
+            print(len(pareto))
+            solution = randomPop(listeVoisins)
+            while solution.hasNext() :
+                solutionPrime = solution.next()
+                solutionPrime.visited = False
+                scoreSolutionPrime = self.eval(solutionPrime.certificat,cmax,tsum,tmax,usum,cptEval)
                 dominated = False
-                for test in listeVoisins :
-                    (scoreTest,cptEval) = self.eval(test.certificat,cmax,tsum,tmax,usum,cptEval)
-                    if self.domine(scoreCandidat,scoreTest) :
-                        listeVoisins.remove(test)
-                    elif self.domine(scoreTest,scoreCandidat) :
+                meilleureVoisin = None
+                scoreMeilleurVoisin = None
+                for paretoElement in pareto :
+                    scorePareto = self.eval(paretoElement.certificat,cmax,tsum,tmax,usum,cptEval)
+                    if self.domine(scoreSolutionPrime,scorePareto) :
+                        print("remove")
+                        pareto.remove(paretoElement)
+                    elif self.domine(scorePareto,scoreSolutionPrime) :
                         dominated = True
-                    if scoreTest == scoreCandidat :
-                        equivalent = test
-                if not dominated and not (candidat in listeVoisins) and equivalent is None :
-                    if first :
-                        listeVoisins.append(candidat)
-                        break
-                    else :
-                        if best is None :
-                            best = candidat
+                if not dominated and not solutionPrime in pareto:
+                    if best :
+                        if meilleureVoisin is None :
+                            meilleureVoisin = solutionPrime
+                            scoreMeilleurVoisin = scoreSolutionPrime
                         else :
-                            (scoreCleanse,cptEval)=self.eval(best.certificat,cmax,tsum,tmax,usum,cptEval)
-                            if self.domine(scoreCandidat,scoreCleanse) :
-                                best = candidat
-                elif archive :
-                    if not (candidat in archiveVisited) :
-                        listeVoisins.remove(test)
-                        listeVoisins.append(candidat)
-                        archiveVisited.append(test)
-
-            if (not first) and best is not None :
-                listeVoisins.append(best)
-
-        if trace :
-            self.doTrace(listeVoisins,'bo',cmax,tsum,tmax,usum) 
-            plt.show()
+                            if self.domine(scoreSolutionPrime,scoreMeilleurVoisin) :
+                                meilleureVoisin = solutionPrime
+                                scoreMeilleurVoisin = scoreSolutionPrime    
+                    else :
+                        pareto.append(solutionPrime)
+                    if first :
+                        break
+            if best and not meilleureVoisin is None :
+                print("append")
+                print(scoreMeilleurVoisin)
+                pareto.append(meilleureVoisin) 
+            solution.visited = True
+            ajouteLesNonVisited(pareto,listeVoisins)
 
         listeScore = []
-        for voisin in listeVoisins :
-            (evalFinale,cptEval) = self.eval(voisin.certificat,cmax,tsum,tmax,usum,cptEval)
+        for voisin in pareto :
+            evalFinale = self.eval(voisin.certificat,cmax,tsum,tmax,usum,cptEval)
             listeScore.append(evalFinale)
         timeTotal = time.time() - start_time
         return (listeScore,cptEval,timeTotal)
+
 
     def genereFileName(self,numIteration,cmax,tsum,tmax,usum,first,archive,nomVoisinage) :
         '''
@@ -220,7 +280,7 @@ class Flowshop(object):
         Renvoie le nom de fichier correspondant a la configuration du problème
         '''
         chemin = self.type
-        chemin = chemin +'_' + str(self.id)+'_'+str(self.n)+'_'+str(self.m)
+        chemin = chemin +'_'+str(self.n)+'_'+str(self.m)+'_' + str(self.id)
         if cmax :
             chemin = chemin + '_cmax'
         if tsum :
@@ -246,12 +306,21 @@ class Flowshop(object):
 
 ################################ GLOBAL ################################
 
+def ajouteLesNonVisited(listeDepart,listeDestination) :
+    for element in listeDepart :
+        if not element.visited :
+            listeDestination.append(element)
+
 def randomPick(listeVoisinages) :
     random.shuffle(listeVoisinages)
     for voisin in listeVoisinages :
         if not voisin.certificat.visited :
             return (voisin,False)
     return (listeVoisinages[0],True)
+
+def randomPop(listeVoisinages) :
+    random.shuffle(listeVoisinages)
+    return listeVoisinages.pop()
 
 def nbVisited(listeCertificats) :
     cpt = 0

@@ -92,20 +92,21 @@ def scriptList(listType,typeName,objectifs,dossier) :
                         voisinSimple = simple.VoisinageSimple(certif)
                         cheminSimple = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinSimple.giveName())
                         print(cheminSimple)
-                        (resSimple,nbEval,time)    = fl.PLS([voisinSimple],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
+                        print(pathname)
+                        (resSimple,nbEval,time)    = fl.PLS([voisinSimple],archive=archive,best=(not first),first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
                         creeFichier(dossier+cheminSimple,resSimple,nbEval,time)
                         #Shift
-                        voisinGauche = gauche.VoisinageGauche(certif)
-                        cheminGauche = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinGauche.giveName())
-                        print(cheminGauche)
-                        (resGauche,nbEval,time)    = fl.PLS([voisinGauche],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
-                        creeFichier(dossier+cheminGauche,resGauche,nbEval,time)
+                        # voisinGauche = gauche.VoisinageGauche(certif)
+                        # cheminGauche = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinGauche.giveName())
+                        # print(cheminGauche)
+                        # (resGauche,nbEval,time)    = fl.PLS([voisinGauche],archive=archive,best=(not first),first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
+                        # creeFichier(dossier+cheminGauche,resGauche,nbEval,time)
                         #Swap
-                        voisinSwap   = swap.VoisinageSwap(certif)
-                        cheminSwap = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinSwap.giveName())
-                        print(cheminSwap)
-                        (resSwap,nbEval,time)      = fl.PLS([voisinSwap],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
-                        creeFichier(dossier+cheminSwap,resSwap,nbEval,time)
+                        # voisinSwap = swap.VoisinageSwap(certif)
+                        # cheminSwap = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinSwap.giveName())
+                        # print(cheminSwap)
+                        # (resSwap,nbEval,time)      = fl.PLS([voisinSwap],archive=archive,best=(not first),first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
+                        # creeFichier(dossier+cheminSwap,resSwap,nbEval,time)
 
 
 
