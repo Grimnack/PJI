@@ -4,11 +4,14 @@ class VoisinageSimple(object):
     """docstring for VoisinageSimple"""
     def __init__(self, flCertif):
         super(VoisinageSimple, self).__init__()
-        self.iterator = -1
+        self.iterator = 0
         self.certificat = flCertif
 
     def __eq__(self,other):
         return self.certificat == other.certificat
+
+    def __str__(self) :
+        return str(self.certificat)
 
     def hasNext(self) :
         return self.iterator+1 <= self.certificat.taille
@@ -30,3 +33,4 @@ class VoisinageSimple(object):
 
     def giveName(self) :
         return "cont"
+

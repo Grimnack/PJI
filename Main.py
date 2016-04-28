@@ -73,8 +73,10 @@ def tesGenereFileName(fl) :
         print(fl.genereFileName(i,False,False,True,True,True,'shift'))
         print(fl.genereFileName(i,False,False,False,False,True,'shift'))        
 
-fl = Flowshop.lecture("data/data/bass/bass_5_9_1.dat")
-tesGenereFileName(fl)
+fl = Flowshop.lecture("data/data/bass/bass_10_10_5.dat")
+certif = FlowshopCertificat.FlowshopCertificat([2, 3, 1, 0, 8, 7, 6, 5, 4, 9])
+voisin = simple.VoisinageSimple(certif)
+print(fl.PLS([voisin],archive=False,first=False,trace=False,cmax=True,tsum=True,tmax=False,usum=False))
 
 # testSimpleDataBest("data/data/bass/bass_10_10_1.dat")
 # testSimpleData("data/data/bass/bass_10_10_1.dat")

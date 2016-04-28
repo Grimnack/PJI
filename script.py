@@ -76,7 +76,7 @@ def scriptList(listType,typeName,objectifs,dossier) :
 
     lance le script mais pour un seul type
     '''
-    archiveL = [True,False]
+    archiveL = [False]
     firstL = [True,False]
     for pathname in listType :
         fl = Flowshop.lecture(pathname)
@@ -87,20 +87,24 @@ def scriptList(listType,typeName,objectifs,dossier) :
                     for i in range(30) :
                         r.seed(i)
                         certif       = fl.certificatAlea()
+                        print(certif.permutation,config,first)
                         #Simple
                         voisinSimple = simple.VoisinageSimple(certif)
-                        (resSimple,nbEval,time)    = fl.PLS([voisinSimple],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
                         cheminSimple = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinSimple.giveName())
+                        print(cheminSimple)
+                        (resSimple,nbEval,time)    = fl.PLS([voisinSimple],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
                         creeFichier(dossier+cheminSimple,resSimple,nbEval,time)
                         #Shift
                         voisinGauche = gauche.VoisinageGauche(certif)
-                        (resGauche,nbEval,time)    = fl.PLS([voisinGauche],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
                         cheminGauche = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinGauche.giveName())
-                        creeFichier(dossier+cheminGauche,resGauche,,nbEval,time)
+                        print(cheminGauche)
+                        (resGauche,nbEval,time)    = fl.PLS([voisinGauche],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
+                        creeFichier(dossier+cheminGauche,resGauche,nbEval,time)
                         #Swap
                         voisinSwap   = swap.VoisinageSwap(certif)
-                        (resSwap,nbEval,time)      = fl.PLS([voisinSwap],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
                         cheminSwap = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinSwap.giveName())
+                        print(cheminSwap)
+                        (resSwap,nbEval,time)      = fl.PLS([voisinSwap],archive=archive,first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
                         creeFichier(dossier+cheminSwap,resSwap,nbEval,time)
 
 
@@ -115,6 +119,7 @@ def scriptList(listType,typeName,objectifs,dossier) :
 #######################################################
 
 lesBass = listBass()
+# print(lesBass)
 # lesLief = listLief()
 # lesRuiz = listRuiz()
 # lesUnif = listUnif()
@@ -126,6 +131,8 @@ lesBass = listBass()
 # os.mkdir('sortie/unif')
 
 objectifs = lesCouples()
+
+# print(lesBass[0])
 
 scriptList(lesBass,'bass',objectifs,'sortie/bass/')
 # scriptList(lesLief,'lief',objectifs,'sortie/lief/')

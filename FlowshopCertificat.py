@@ -21,6 +21,9 @@ class FlowshopCertificat(object):
     def __eq__(self,other) :
         return self.permutation == other.permutation
 
+    def __str__(self) :
+        return str(self.permutation)
+
 
     def estCorrecte(self,tailleProbleme) :
         """

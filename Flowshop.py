@@ -144,7 +144,7 @@ class Flowshop(object):
         return nouvelle
 
 
-    def PLS(self,listeInit,archive=False,first=True,trace=False,cmax=True,tsum=True,tmax=False,usum=False) :
+    def PLS(self,listeVoisins,archive=False,first=True,trace=False,cmax=True,tsum=True,tmax=False,usum=False) :
         '''
 
         Entrée : une liste de certificats acceptables
