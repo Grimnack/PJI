@@ -166,10 +166,10 @@ class Flowshop(object):
                 if trace :
                     self.doTrace([solution],'ro',cmax,tsum,tmax,usum)
                 dominated = False
-                meilleureVoisin = None
-                scoreMeilleurVoisin = None
                 for paretoElement in pareto :
                     scorePareto = self.eval(paretoElement.certificat,cmax,tsum,tmax,usum)
+                    if trace :
+                        self.doTrace([paretoElement],'ro',cmax,tsum,tmax,usum)
                     if self.domine(scoreSolutionPrime,scorePareto) :
                         pareto.remove(paretoElement)
                     elif self.domine(scorePareto,scoreSolutionPrime) :

@@ -76,7 +76,7 @@ def tesGenereFileName(fl) :
 fl = Flowshop.lecture("data/data/bass/bass_10_10_5.dat")
 certif = FlowshopCertificat.FlowshopCertificat([7, 8, 1, 5, 3, 4, 2, 0, 9, 6])
 voisin = simple.VoisinageSimple(certif)
-print(fl.PLS([voisin],archive=False,first=False,best=True,trace=True,cmax=True,tsum=True,tmax=False,usum=False))
+print(fl.PLS([voisin],archive=False,first=True,best=False,trace=True,cmax=True,tsum=True,tmax=False,usum=False))
 
 # testSimpleDataBest("data/data/bass/bass_10_10_1.dat")
 # testSimpleData("data/data/bass/bass_10_10_1.dat")
