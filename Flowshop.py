@@ -28,6 +28,7 @@ class Flowshop(object):
         self.m = m # nombre de machines INT
         self.p = p[:] # p[i][j] temps de traitement du job i sur la machine j LIST OF LIST OF INT
         self.d = d[:] # d[i] date de fin souhaité du job i
+        self.cptEval = 0
 
     def __str__(self):
         return "problème id : " + str(self.id) + "\n n = " + str(self.n) + "\n m = " + str(self.m) + "\n p = " + str(self.p)+ "\n d = " + str(self.d)
@@ -43,7 +44,7 @@ class Flowshop(object):
         random.shuffle(listeTaches)
         return FlowshopCertificat.FlowshopCertificat(listeTaches)
 
-    def eval(self,certificat,cmax,tsum,tmax,usum,cptEval) :
+    def eval(self,certificat,cmax,tsum,tmax,usum) :
         '''
         [FlowshopCertificat]->[bool]->[bool]->[bool]->[bool]->[vecteurScore]
         Entrée le certificat a évaluer  
@@ -87,7 +88,7 @@ class Flowshop(object):
             vecteurScore.append(Usum)
 
         certificat.score = vecteurScore
-        cptEval += 1
+        self.cptEval += 1
         return vecteurScore
 
     def doTrace(self,voisinages,chaine,cmax,tsum,tmax,usum) :
@@ -140,79 +141,6 @@ class Flowshop(object):
                 nouvelle.append(test)
         return nouvelle
 
-
-    # def PLS(self,listeVoisins,archive=False,first=True,trace=False,cmax=True,tsum=True,tmax=False,usum=False) :
-    #     '''
-
-    #     Entrée : une liste de certificats acceptables
-
-    #     option trace pour matplotlib
-
-    #     pour chaque certificats on calcule les voisins,
-    #     on ajoute uniquement le premier meilleur voisin pour l'iteration suivante
-    #     si pas de meilleurs on laisse notre certificat actuel 
-    #     '''
-    #     start_time = time.time()
-    #     cptEval = 0
-    #     # listeVoisins = self.cleanse(listeInit,cmax,tsum,tmax,usum)
-    #     allVisited = False
-    #     pareto = listeVoisins[:] #histoire de ne pas boucler, je ne sais pas si on fait comme ça
-    #     if trace :
-    #         self.doTrace(listeVoisins,'ro',cmax,tsum,tmax,usum)
-    #     while True:
-    #         (voisin,allVisited) = randomPick(listeVoisins)
-    #         if allVisited :
-    #             break
-    #         voisin.certificat.visited = True
-    #         best = None
-    #         while voisin.hasNext() :
-    #             equivalent = None
-    #             candidat = voisin.next()
-    #             (scoreCandidat,cptEval)= self.eval(candidat.certificat,cmax,tsum,tmax,usum,cptEval)
-    #             if trace :
-    #                 plt.plot(scoreCandidat[0],scoreCandidat[1],'ro') #ici faudrait mettre dotrace 
-    #             dominated = False
-    #             for test in listeVoisins :
-    #                 (scoreTest,cptEval) = self.eval(test.certificat,cmax,tsum,tmax,usum,cptEval)
-    #                 if self.domine(scoreCandidat,scoreTest) :
-    #                     listeVoisins.remove(test)
-    #                 elif self.domine(scoreTest,scoreCandidat) :
-    #                     dominated = True
-    #                 if scoreTest == scoreCandidat :
-    #                     equivalent = test
-    #             if not dominated and not (candidat in listeVoisins) and equivalent is None :
-    #                 if first :
-    #                     listeVoisins.append(candidat)
-    #                     break
-    #                 else :
-    #                     if best is None :
-    #                         best = candidat
-    #                     else :
-    #                         (scoreCleanse,cptEval)=self.eval(best.certificat,cmax,tsum,tmax,usum,cptEval)
-    #                         if self.domine(scoreCandidat,scoreCleanse) :
-    #                             best = candidat
-    #             elif archive :
-    #                 if not (candidat in archiveVisited) :
-    #                     listeVoisins.remove(test)
-    #                     listeVoisins.append(candidat)
-    #                     archiveVisited.append(test)
-
-    #         if (not first) and best is not None :
-    #             listeVoisins.append(best)
-
-    #     if trace :
-    #         self.doTrace(listeVoisins,'bo',cmax,tsum,tmax,usum) 
-    #         plt.show()
-
-    #     listeScore = []
-    #     for voisin in listeVoisins :
-    #         (evalFinale,cptEval) = self.eval(voisin.certificat,cmax,tsum,tmax,usum,cptEval)
-    #         listeScore.append(evalFinale)
-    #     timeTotal = time.time() - start_time
-    #     return (listeScore,cptEval,timeTotal)
-
-
-
     def PLS(self,listeVoisins,archive=False,first=True,best=False,trace=False,cmax=True,tsum=True,tmax=False,usum=False) :
         '''
 
@@ -220,58 +148,48 @@ class Flowshop(object):
 
         option trace pour matplotlib
 
-        pour chaque certificats on calcule les voisins,
-        on ajoute uniquement le premier meilleur voisin pour l'iteration suivante
-        si pas de meilleurs on laisse notre certificat actuel 
+        cf algo du rapport
         '''
         start_time = time.time()
+        self.cptEval = 0
+        if trace :
+            self.doTrace(listeVoisins,'ro',cmax,tsum,tmax,usum)
         for solution in listeVoisins :
             solution.visited = False
-        cptEval = 0
         pareto = listeVoisins[:]
         while listeVoisins != []:
-            print(len(pareto))
-            solution = randomPop(listeVoisins)
+            solution = randomPick(listeVoisins)
             while solution.hasNext() :
                 solutionPrime = solution.next()
                 solutionPrime.visited = False
-                scoreSolutionPrime = self.eval(solutionPrime.certificat,cmax,tsum,tmax,usum,cptEval)
+                scoreSolutionPrime = self.eval(solutionPrime.certificat,cmax,tsum,tmax,usum)
+                if trace :
+                    self.doTrace([solution],'ro',cmax,tsum,tmax,usum)
                 dominated = False
                 meilleureVoisin = None
                 scoreMeilleurVoisin = None
                 for paretoElement in pareto :
-                    scorePareto = self.eval(paretoElement.certificat,cmax,tsum,tmax,usum,cptEval)
+                    scorePareto = self.eval(paretoElement.certificat,cmax,tsum,tmax,usum)
                     if self.domine(scoreSolutionPrime,scorePareto) :
-                        print("remove")
                         pareto.remove(paretoElement)
                     elif self.domine(scorePareto,scoreSolutionPrime) :
                         dominated = True
-                if not dominated and not solutionPrime in pareto:
-                    if best :
-                        if meilleureVoisin is None :
-                            meilleureVoisin = solutionPrime
-                            scoreMeilleurVoisin = scoreSolutionPrime
-                        else :
-                            if self.domine(scoreSolutionPrime,scoreMeilleurVoisin) :
-                                meilleureVoisin = solutionPrime
-                                scoreMeilleurVoisin = scoreSolutionPrime    
-                    else :
-                        pareto.append(solutionPrime)
-                    if first :
+                if not dominated and not solutionPrime in pareto: 
+                    pareto.append(solutionPrime)
+                    if first==True :
                         break
-            if best and not meilleureVoisin is None :
-                print("append")
-                print(scoreMeilleurVoisin)
-                pareto.append(meilleureVoisin) 
-            solution.visited = True
-            ajouteLesNonVisited(pareto,listeVoisins)
-
+            if not solution.hasNext() :
+                solution.visited = True
+            listeVoisins = listeNonVisited(pareto)
         listeScore = []
         for voisin in pareto :
-            evalFinale = self.eval(voisin.certificat,cmax,tsum,tmax,usum,cptEval)
+            evalFinale = self.eval(voisin.certificat,cmax,tsum,tmax,usum)
             listeScore.append(evalFinale)
+        if trace :
+            self.doTrace(pareto,'bo',cmax,tsum,tmax,usum)
+            plt.show()
         timeTotal = time.time() - start_time
-        return (listeScore,cptEval,timeTotal)
+        return (listeScore,self.cptEval,timeTotal)
 
 
     def genereFileName(self,numIteration,cmax,tsum,tmax,usum,first,archive,nomVoisinage) :
@@ -306,18 +224,28 @@ class Flowshop(object):
 
 ################################ GLOBAL ################################
 
-def ajouteLesNonVisited(listeDepart,listeDestination) :
-    for element in listeDepart :
+# def ajouteLesNonVisited(listeDepart,listeDestination) :
+#     for element in listeDepart :
+#         if not element.visited :
+#             listeDestination.append(element)
+
+def listeNonVisited(listeVoisinages) :
+    res = []
+    for element in listeVoisinages :
         if not element.visited :
-            listeDestination.append(element)
+            res.append(element)
+    return res 
+
+# def randomPick(listeVoisinages) :
+#     random.shuffle(listeVoisinages)
+#     for voisin in listeVoisinages :
+#         if not voisin.certificat.visited :
+#             return (voisin,False)
+#     return (listeVoisinages[0],True)
 
 def randomPick(listeVoisinages) :
     random.shuffle(listeVoisinages)
-    for voisin in listeVoisinages :
-        if not voisin.certificat.visited :
-            return (voisin,False)
-    return (listeVoisinages[0],True)
-
+    return listeVoisinages[0]
 def randomPop(listeVoisinages) :
     random.shuffle(listeVoisinages)
     return listeVoisinages.pop()
