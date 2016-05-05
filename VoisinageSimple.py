@@ -20,9 +20,6 @@ class VoisinageSimple(object):
         '''
         version voisinsSimple avec iterator
         '''
-        if self.iterator == -1 :
-            self.iterator = 0
-            return self
         permut = self.certificat.permutation[:]
         if self.iterator == len(permut)-1 :
             cert.echange(permut,self.iterator,0)

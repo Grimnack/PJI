@@ -67,7 +67,7 @@ def creeFichier(pathname,listeScore,complexite,temps) :
     f.write(str(temps))
     f.close()
 
-def scriptList(listType,typeName,objectifs,dossier) :
+def scriptList(listType,typeName,objectifs,chemin,d) :
     '''
     param listType  la liste de tous les chemin pour les datas d'un certain type
     param typeName  le nom de ce certain type 
@@ -87,26 +87,21 @@ def scriptList(listType,typeName,objectifs,dossier) :
                     for i in range(30) :
                         r.seed(i)
                         certif       = fl.certificatAlea()
-                        print(certif.permutation,config,first)
                         #Simple
                         voisinSimple = simple.VoisinageSimple(certif)
                         cheminSimple = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinSimple.giveName())
-                        print(cheminSimple)
-                        print(pathname)
                         (resSimple,nbEval,time)    = fl.PLS([voisinSimple],archive=archive,best=(not first),first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
-                        creeFichier(dossier+cheminSimple,resSimple,nbEval,time)
-                        #Shift
-                        # voisinGauche = gauche.VoisinageGauche(certif)
-                        # cheminGauche = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinGauche.giveName())
-                        # print(cheminGauche)
-                        # (resGauche,nbEval,time)    = fl.PLS([voisinGauche],archive=archive,best=(not first),first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
-                        # creeFichier(dossier+cheminGauche,resGauche,nbEval,time)
-                        #Swap
-                        # voisinSwap = swap.VoisinageSwap(certif)
-                        # cheminSwap = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinSwap.giveName())
-                        # print(cheminSwap)
-                        # (resSwap,nbEval,time)      = fl.PLS([voisinSwap],archive=archive,best=(not first),first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
-                        # creeFichier(dossier+cheminSwap,resSwap,nbEval,time)
+                        creeFichier(chemin+'/'+typeName+d[0]+'/'+cheminSimple,resSimple,nbEval,time)
+                        # Shift
+                        voisinGauche = gauche.VoisinageGauche(certif)
+                        cheminGauche = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinGauche.giveName())
+                        (resGauche,nbEval,time)    = fl.PLS([voisinGauche],archive=archive,best=(not first),first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
+                        creeFichier(chemin+'/'+typeName+d[1]+'/'+cheminGauche,resGauche,nbEval,time)
+                        # Swap
+                        voisinSwap = swap.VoisinageSwap(certif)
+                        cheminSwap = fl.genereFileName(i,config[0],config[1],config[2],config[3],first,archive,voisinSwap.giveName())
+                        (resSwap,nbEval,time)      = fl.PLS([voisinSwap],archive=archive,best=(not first),first=first,trace=False,cmax=config[0],tsum=config[1],tmax=config[2],usum=config[3])
+                        creeFichier(chemin+'/'+typeName+d[2]+'/'+cheminSwap,resSwap,nbEval,time)
 
 
 
@@ -121,23 +116,30 @@ def scriptList(listType,typeName,objectifs,dossier) :
 
 lesBass = listBass()
 # print(lesBass)
-# lesLief = listLief()
-# lesRuiz = listRuiz()
-# lesUnif = listUnif()
+lesLief = listLief()
+lesRuiz = listRuiz()
+lesUnif = listUnif()
 
-# os.mkdir('sortie')
-# os.mkdir('sortie/bass')
-# os.mkdir('sortie/lief')
-# os.mkdir('sortie/ruiz')
-# os.mkdir('sortie/unif')
+print(len(lesBass)+len(lesLief)+len(lesRuiz)+len(lesUnif))
+
+chemin = 'sortie'
+os.mkdir(chemin)
+decoupage1 = ['/bass','/lief','/ruiz','/unif']
+decoupage2 = ['/simple','/gauche','/swap']
+for d1 in decoupage1 :
+    os.mkdir(chemin+d1)
+    for d2 in decoupage2 :
+        os.mkdir(chemin+d1+d2)
+
+
 
 objectifs = lesCouples()
 
 # print(lesBass[0])
 
-scriptList(lesBass,'bass',objectifs,'sortie/bass/')
-# scriptList(lesLief,'lief',objectifs,'sortie/lief/')
-# scriptList(lesRuiz,'ruiz',objectifs,'sortie/ruiz/')
-# scriptList(lesUnif,'unif',objectifs,'sortie/unif/')
+# scriptList(lesBass,'bass',objectifs,chemin,decoupage2)
+# scriptList(lesLief,'lief',objectifs,chemin,decoupage2)
+# scriptList(lesRuiz,'ruiz',objectifs,chemin,decoupage2)
+# scriptList(lesUnif,'unif',objectifs,chemin,decoupage2)
 
 
